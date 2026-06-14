@@ -28,6 +28,7 @@ const emptyDraft = (date: string): ShiftDraft => ({
   custom_rate: null,
   tags: [],
   entry_type: 'work',
+  paid_break: null,
 });
 
 export default function ShiftModal({
@@ -39,6 +40,7 @@ export default function ShiftModal({
           date: shift.date, start_time: shift.start_time, end_time: shift.end_time,
           break_minutes: shift.break_minutes, title: shift.title, notes: shift.notes,
           custom_rate: shift.custom_rate, tags: shift.tags, entry_type: shift.entry_type,
+          paid_break: shift.paid_break,
         }
       : emptyDraft(defaultDate),
   );
@@ -65,7 +67,7 @@ export default function ShiftModal({
 
   const preview = useMemo(() => {
     const tmp: Shift = { id: 0, workbench_id: workbench.id, created_at: '', ...draft };
-    return { hours: shiftHours(tmp), gross: shiftGross(tmp, workbench) };
+    return { hours: shiftHours(tmp, workbench), gross: shiftGross(tmp, workbench) };
   }, [draft, workbench]);
 
   const isWork = draft.entry_type === 'work';
@@ -158,6 +160,17 @@ export default function ShiftModal({
                   <label>Break (minutes)</label>
                   <input type="number" min={0} value={draft.break_minutes}
                     onChange={(e) => set('break_minutes', Number(e.target.value))} />
+                  <select
+                    value={draft.paid_break == null ? '' : String(draft.paid_break)}
+                    onChange={(e) => set('paid_break', e.target.value === '' ? null : (Number(e.target.value) as 0 | 1))}
+                    style={{ marginTop: 6 }}
+                  >
+                    <option value="">
+                      Break pay: workbench default ({workbench.paid_breaks ? 'paid' : 'deducted'})
+                    </option>
+                    <option value="1">Paid break — don't deduct</option>
+                    <option value="0">Unpaid break — deduct</option>
+                  </select>
                 </div>
                 <div className="field">
                   <label>Custom hourly rate <span className="hint">optional</span></label>

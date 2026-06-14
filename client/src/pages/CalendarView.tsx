@@ -101,7 +101,7 @@ export default function CalendarView() {
         <div className="cal-grid">
           {cells.map((c) => {
             const dayShifts = shiftsByDate[c.key] || [];
-            const dayHours = dayShifts.reduce((a, s) => a + shiftHours(s), 0);
+            const dayHours = dayShifts.reduce((a, s) => a + shiftHours(s, workbench), 0);
             const dow = new Date(c.key).getDay();
             const weekend = dow === 0 || dow === 6;
             return (
@@ -121,7 +121,7 @@ export default function CalendarView() {
                     onClick={(e) => { e.stopPropagation(); setModal({ shift: s, date: s.date }); }}
                   >
                     {s.entry_type === 'work'
-                      ? `${s.start_time ?? ''} ${s.title || ''}`.trim() || fmtHours(shiftHours(s))
+                      ? `${s.start_time ?? ''} ${s.title || ''}`.trim() || fmtHours(shiftHours(s, workbench))
                       : s.entry_type === 'vacation' ? '🏖 Vacation' : '🤒 Sick'}
                   </div>
                 ))}

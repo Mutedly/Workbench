@@ -101,14 +101,22 @@ export function monthLabel(year: number, month0: number): string {
 }
 
 /* --------------------------- per-shift maths -------------------------- */
+// Whether a shift's break is paid (i.e. NOT deducted from worked hours).
+// Per-shift override wins; otherwise fall back to the workbench default.
+export function isBreakPaid(shift: Shift, wb?: Workbench): boolean {
+  if (shift.paid_break === 0 || shift.paid_break === 1) return shift.paid_break === 1;
+  return wb ? !!wb.paid_breaks : false;
+}
+
 // Worked hours for a single shift (decimal hours). Only 'work' entries count.
-export function shiftHours(shift: Shift): number {
+export function shiftHours(shift: Shift, wb?: Workbench): number {
   if (shift.entry_type !== 'work') return 0;
   if (!shift.start_time || !shift.end_time) return 0;
   const start = toMinutes(shift.start_time);
   let end = toMinutes(shift.end_time);
   if (end <= start) end += 24 * 60; // overnight shift
-  const minutes = end - start - (shift.break_minutes || 0);
+  const breakMin = isBreakPaid(shift, wb) ? 0 : (shift.break_minutes || 0);
+  const minutes = end - start - breakMin;
   return Math.max(0, minutes) / 60;
 }
 
@@ -133,7 +141,7 @@ export function premiumMultiplier(shift: Shift, wb: Workbench): number {
 
 // Gross earnings for a single shift in HOURLY mode.
 export function shiftGross(shift: Shift, wb: Workbench): number {
-  const hours = shiftHours(shift);
+  const hours = shiftHours(shift, wb);
   if (hours <= 0) return 0;
   const rate = shiftRate(shift, wb);
   const premium = premiumMultiplier(shift, wb);
@@ -151,7 +159,7 @@ export function shiftGross(shift: Shift, wb: Workbench): number {
 
 export function shiftOvertimeHours(shift: Shift, wb: Workbench): number {
   if (!wb.overtime_enabled) return 0;
-  const hours = shiftHours(shift);
+  const hours = shiftHours(shift, wb);
   if (shift.tags.includes('overtime')) return hours;
   return Math.max(0, hours - wb.overtime_daily_threshold);
 }
@@ -202,7 +210,7 @@ export function computeMonthStats(
   let overtimeHours = 0;
   let grossHourly = 0;
   for (const s of workShifts) {
-    totalHours += shiftHours(s);
+    totalHours += shiftHours(s, wb);
     overtimeHours += shiftOvertimeHours(s, wb);
     grossHourly += shiftGross(s, wb);
   }
@@ -211,7 +219,7 @@ export function computeMonthStats(
   const sickUsed = monthShifts.filter((s) => s.entry_type === 'sick').length;
 
   // Travel allowance is paid per distinct commuting (work) day.
-  const travelDays = new Set(workShifts.filter((s) => shiftHours(s) > 0).map((s) => s.date)).size;
+  const travelDays = new Set(workShifts.filter((s) => shiftHours(s, wb) > 0).map((s) => s.date)).size;
 
   const grossWork = wb.salary_mode === 'monthly' ? wb.monthly_salary : grossHourly;
   const tax = computePay(wb, grossWork, travelDays);

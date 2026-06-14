@@ -24,6 +24,7 @@ export interface Workbench {
   vacation_days_total: number;
   sick_days_total: number;
   monthly_hour_target: number;
+  paid_breaks: number;
   tax_rate: number;
   tax_model: TaxModel;
   credit_points: number;
@@ -61,6 +62,7 @@ export interface Shift {
   custom_rate: number | null;
   tags: string[];
   entry_type: EntryType;
+  paid_break: number | null; // null = inherit workbench, 1 = paid, 0 = deducted
   created_at: string;
 }
 

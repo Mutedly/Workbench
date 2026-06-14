@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS workbenches (
   vacation_days_total REAL NOT NULL DEFAULT 0,
   sick_days_total REAL NOT NULL DEFAULT 0,
   monthly_hour_target REAL NOT NULL DEFAULT 160,
+  paid_breaks INTEGER NOT NULL DEFAULT 0,
   tax_rate REAL NOT NULL DEFAULT 0,
   tax_model TEXT NOT NULL DEFAULT 'flat',
   credit_points REAL NOT NULL DEFAULT 2.25,
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS shifts (
   custom_rate REAL,
   tags TEXT NOT NULL DEFAULT '[]',
   entry_type TEXT NOT NULL DEFAULT 'work',
+  paid_break INTEGER,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -78,5 +80,9 @@ addColumn('tax_model', "tax_model TEXT NOT NULL DEFAULT 'flat'");
 addColumn('credit_points', 'credit_points REAL NOT NULL DEFAULT 2.25');
 addColumn('travel_per_day', 'travel_per_day REAL NOT NULL DEFAULT 0');
 addColumn('travel_taxable', 'travel_taxable INTEGER NOT NULL DEFAULT 0');
+addColumn('paid_breaks', 'paid_breaks INTEGER NOT NULL DEFAULT 0');
+
+const shiftCols = new Set(db.prepare('PRAGMA table_info(shifts)').all().map((c) => c.name));
+if (!shiftCols.has('paid_break')) db.exec('ALTER TABLE shifts ADD COLUMN paid_break INTEGER');
 
 export default db;

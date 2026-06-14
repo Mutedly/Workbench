@@ -31,7 +31,7 @@ export default function Reports() {
     const map: Record<string, { hours: number; gross: number; count: number }> = {};
     for (const s of shifts) {
       if (s.entry_type !== 'work') continue;
-      const h = shiftHours(s);
+      const h = shiftHours(s, workbench);
       const g = shiftGross(s, workbench);
       const keys = s.tags.length ? s.tags : ['untagged'];
       for (const k of keys) {
@@ -46,7 +46,7 @@ export default function Reports() {
 
   const totals = useMemo(() => {
     const work = shifts.filter((s) => s.entry_type === 'work');
-    const hours = work.reduce((a, s) => a + shiftHours(s), 0);
+    const hours = work.reduce((a, s) => a + shiftHours(s, workbench), 0);
     const gross = work.reduce((a, s) => a + shiftGross(s, workbench), 0);
     return {
       hours,

@@ -28,7 +28,7 @@ export function buildWorkbenchCsv(wb: Workbench, shifts: Shift[]): string {
   lines.push(shiftHeaders.map(cell).join(','));
   const sorted = [...shifts].sort((a, b) => a.date.localeCompare(b.date));
   for (const s of sorted) {
-    const hours = shiftHours(s);
+    const hours = shiftHours(s, wb);
     lines.push([
       s.date,
       parseKey(s.date).toLocaleDateString(undefined, { weekday: 'short' }),

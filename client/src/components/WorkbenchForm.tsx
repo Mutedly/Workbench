@@ -7,7 +7,7 @@ export type WbValues = Pick<
   | 'name' | 'salary_mode' | 'default_rate' | 'monthly_salary' | 'monthly_contract_hours'
   | 'overtime_enabled' | 'overtime_daily_threshold' | 'overtime_multiplier'
   | 'weekend_multiplier' | 'holiday_multiplier' | 'night_multiplier'
-  | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target'
+  | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target' | 'paid_breaks'
   | 'tax_rate' | 'tax_model' | 'credit_points'
   | 'travel_per_day' | 'travel_taxable' | 'currency' | 'color' | 'notes'
 >;
@@ -27,6 +27,7 @@ export const defaultValues: WbValues = {
   vacation_days_total: 20,
   sick_days_total: 10,
   monthly_hour_target: 160,
+  paid_breaks: 0,
   tax_rate: 0,
   tax_model: 'flat',
   credit_points: 2.25,
@@ -148,6 +149,15 @@ export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel
             </div>
           </div>
         )}
+        <div className="divider" />
+        <label className="row-tight" style={{ cursor: 'pointer', fontWeight: 600 }}>
+          <input type="checkbox" checked={!!v.paid_breaks}
+            onChange={(e) => set('paid_breaks', e.target.checked ? 1 : 0)} />
+          Paid breaks — don't deduct break time from hours
+        </label>
+        <span className="hint" style={{ marginTop: -8 }}>
+          Turn on if you're paid for breaks. Applies to every shift; you can still override per shift.
+        </span>
       </div>
 
       {/* Overtime & premiums */}

@@ -23,14 +23,14 @@ const WORKBENCH_FIELDS = [
   'name', 'salary_mode', 'default_rate', 'monthly_salary', 'monthly_contract_hours',
   'overtime_enabled', 'overtime_daily_threshold', 'overtime_multiplier',
   'weekend_multiplier', 'holiday_multiplier', 'night_multiplier',
-  'vacation_days_total', 'sick_days_total', 'monthly_hour_target',
+  'vacation_days_total', 'sick_days_total', 'monthly_hour_target', 'paid_breaks',
   'tax_rate', 'tax_model', 'credit_points', 'travel_per_day', 'travel_taxable',
   'currency', 'color', 'notes',
 ];
 
 const SHIFT_FIELDS = [
   'date', 'start_time', 'end_time', 'break_minutes', 'title',
-  'notes', 'custom_rate', 'tags', 'entry_type',
+  'notes', 'custom_rate', 'tags', 'entry_type', 'paid_break',
 ];
 
 function mapShift(row) {
@@ -104,6 +104,7 @@ api.post('/workbenches', authMiddleware, (req, res) => {
     vacation_days_total: num(b.vacation_days_total, 0),
     sick_days_total: num(b.sick_days_total, 0),
     monthly_hour_target: num(b.monthly_hour_target, 160),
+    paid_breaks: b.paid_breaks ? 1 : 0,
     tax_rate: num(b.tax_rate, 0),
     tax_model: b.tax_model === 'israel' ? 'israel' : 'flat',
     credit_points: num(b.credit_points, 2.25),
@@ -134,7 +135,7 @@ api.put('/workbenches/:id', authMiddleware, (req, res) => {
   const updates = {};
   for (const f of WORKBENCH_FIELDS) {
     if (f in b) {
-      if (f === 'overtime_enabled' || f === 'travel_taxable') updates[f] = b[f] ? 1 : 0;
+      if (f === 'overtime_enabled' || f === 'travel_taxable' || f === 'paid_breaks') updates[f] = b[f] ? 1 : 0;
       else if (f === 'salary_mode') updates[f] = b[f] === 'monthly' ? 'monthly' : 'hourly';
       else if (f === 'tax_model') updates[f] = b[f] === 'israel' ? 'israel' : 'flat';
       else if (['name', 'currency', 'color', 'notes'].includes(f)) updates[f] = b[f] ?? wb[f];
@@ -176,7 +177,14 @@ function buildShiftValues(b, fallback = {}) {
     custom_rate: b.custom_rate === '' || b.custom_rate == null ? (fallback.custom_rate ?? null) : num(b.custom_rate, null),
     tags: JSON.stringify(Array.isArray(b.tags) ? b.tags : safeParse(fallback.tags, [])),
     entry_type: b.entry_type ?? fallback.entry_type ?? 'work',
+    paid_break: normPaidBreak('paid_break' in b ? b.paid_break : fallback.paid_break),
   };
+}
+
+function normPaidBreak(v) {
+  if (v === 1 || v === '1' || v === true) return 1;
+  if (v === 0 || v === '0' || v === false) return 0;
+  return null;
 }
 
 api.post('/workbenches/:id/shifts', authMiddleware, (req, res) => {

@@ -28,7 +28,7 @@ export default function ListView() {
   const rows = useMemo(() => {
     let list = shifts.map((s) => ({
       shift: s,
-      hours: shiftHours(s),
+      hours: shiftHours(s, workbench),
       gross: shiftGross(s, workbench),
       rate: shiftRate(s, workbench),
     }));

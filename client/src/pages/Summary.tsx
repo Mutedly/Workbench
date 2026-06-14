@@ -29,7 +29,7 @@ export default function Summary() {
         map.set(wk, { label: `${mon.toLocaleDateString(undefined, o)}–${sun.toLocaleDateString(undefined, o)}`, hours: 0, gross: 0 });
       }
       const b = map.get(wk)!;
-      b.hours += shiftHours(s);
+      b.hours += shiftHours(s, workbench);
       b.gross += shiftGross(s, workbench);
     }
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([, v]) => v);
