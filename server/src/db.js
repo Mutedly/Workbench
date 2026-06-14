@@ -1,0 +1,68 @@
+import Database from 'better-sqlite3';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+fs.mkdirSync(dataDir, { recursive: true });
+
+const db = new Database(path.join(dataDir, 'workbench.db'));
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS workbenches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  salary_mode TEXT NOT NULL DEFAULT 'hourly',
+  default_rate REAL NOT NULL DEFAULT 0,
+  monthly_salary REAL NOT NULL DEFAULT 0,
+  monthly_contract_hours REAL NOT NULL DEFAULT 160,
+  overtime_enabled INTEGER NOT NULL DEFAULT 0,
+  overtime_daily_threshold REAL NOT NULL DEFAULT 8,
+  overtime_multiplier REAL NOT NULL DEFAULT 1.5,
+  weekend_multiplier REAL NOT NULL DEFAULT 1,
+  holiday_multiplier REAL NOT NULL DEFAULT 1,
+  night_multiplier REAL NOT NULL DEFAULT 1,
+  vacation_days_total REAL NOT NULL DEFAULT 0,
+  sick_days_total REAL NOT NULL DEFAULT 0,
+  monthly_hour_target REAL NOT NULL DEFAULT 160,
+  tax_rate REAL NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  color TEXT NOT NULL DEFAULT '#6366f1',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS shifts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workbench_id INTEGER NOT NULL REFERENCES workbenches(id) ON DELETE CASCADE,
+  date TEXT NOT NULL,
+  start_time TEXT,
+  end_time TEXT,
+  break_minutes REAL NOT NULL DEFAULT 0,
+  title TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  custom_rate REAL,
+  tags TEXT NOT NULL DEFAULT '[]',
+  entry_type TEXT NOT NULL DEFAULT 'work',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_workbenches_user ON workbenches(user_id);
+CREATE INDEX IF NOT EXISTS idx_shifts_workbench ON shifts(workbench_id);
+CREATE INDEX IF NOT EXISTS idx_shifts_date ON shifts(date);
+`);
+
+export default db;
