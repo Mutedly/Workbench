@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useData } from '../data';
+import { subscribeRealtime } from '../realtime';
 import { useAuth } from '../auth';
 import type { Shift, ShiftDraft, Workbench } from '../types';
 import { computeMonthStats, fmtHours, money, parseKey, todayKey } from '../calc';
@@ -25,6 +26,16 @@ export default function Dashboard() {
     });
     return () => { cancelled = true; };
   }, [workbenches]);
+
+  // Live-refresh a workbench's shifts when they change elsewhere.
+  useEffect(() => {
+    return subscribeRealtime((event) => {
+      if (event.kind === 'shifts' && event.workbenchId) {
+        const id = event.workbenchId;
+        api.listShifts(id).then((sh) => setShiftsByWb((p) => ({ ...p, [id]: sh }))).catch(() => {});
+      }
+    });
+  }, []);
 
   const now = new Date();
 

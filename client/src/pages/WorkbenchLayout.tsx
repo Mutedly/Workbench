@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useData } from '../data';
+import { subscribeRealtime } from '../realtime';
 import type { Shift, ShiftDraft, Workbench } from '../types';
 
 interface WbState {
@@ -41,6 +42,18 @@ export default function WorkbenchLayout() {
       .catch((e) => !cancelled && setError(e.message))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
+  }, [wbId]);
+
+  // Live updates from other windows/devices for this workbench.
+  useEffect(() => {
+    return subscribeRealtime((event) => {
+      if (event.workbenchId && event.workbenchId !== wbId) return;
+      if (event.kind === 'shifts') {
+        api.listShifts(wbId).then(setShifts).catch(() => {});
+      } else if (event.kind === 'workbenches') {
+        api.getWorkbench(wbId).then(setWorkbench).catch(() => {});
+      }
+    });
   }, [wbId]);
 
   if (loading) return <div className="spinner" />;

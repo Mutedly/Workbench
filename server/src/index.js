@@ -5,7 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import db from './db.js';
-import { signToken, authMiddleware } from './auth.js';
+import { signToken, authMiddleware, verifyToken } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -13,6 +13,49 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
 const api = express.Router();
+
+/* --------------------- realtime (Server-Sent Events) --------------- */
+const sseClients = new Map(); // userId -> Set(res)
+
+function sseBroadcast(userId, event) {
+  const set = sseClients.get(userId);
+  if (!set || set.size === 0) return;
+  const payload = `data: ${JSON.stringify(event)}\n\n`;
+  for (const res of set) {
+    try { res.write(payload); } catch { /* ignore broken pipe */ }
+  }
+}
+
+api.get('/stream', (req, res) => {
+  const user = verifyToken(req.query.token);
+  if (!user) return res.status(401).end();
+
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  res.flushHeaders?.();
+  res.write('retry: 3000\n\n');
+  res.write(`data: ${JSON.stringify({ kind: 'connected' })}\n\n`);
+
+  if (!sseClients.has(user.id)) sseClients.set(user.id, new Set());
+  sseClients.get(user.id).add(res);
+
+  const ping = setInterval(() => {
+    try { res.write(': ping\n\n'); } catch { /* ignore */ }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(ping);
+    const set = sseClients.get(user.id);
+    if (set) {
+      set.delete(res);
+      if (set.size === 0) sseClients.delete(user.id);
+    }
+  });
+});
 
 /* ----------------------------- helpers ----------------------------- */
 function publicUser(u) {
@@ -119,6 +162,7 @@ api.post('/workbenches', authMiddleware, (req, res) => {
   const info = db
     .prepare(`INSERT INTO workbenches (user_id, sort_order, ${cols}) VALUES (@user_id, @sort_order, ${placeholders})`)
     .run({ ...defaults, user_id: req.user.id, sort_order: maxOrder + 1 });
+  sseBroadcast(req.user.id, { kind: 'workbenches' });
   res.json(db.prepare('SELECT * FROM workbenches WHERE id = ?').get(info.lastInsertRowid));
 });
 
@@ -146,6 +190,7 @@ api.put('/workbenches/:id', authMiddleware, (req, res) => {
     const setClause = Object.keys(updates).map((k) => `${k} = @${k}`).join(', ');
     db.prepare(`UPDATE workbenches SET ${setClause} WHERE id = @id`).run({ ...updates, id: wb.id });
   }
+  sseBroadcast(req.user.id, { kind: 'workbenches', workbenchId: wb.id });
   res.json(db.prepare('SELECT * FROM workbenches WHERE id = ?').get(wb.id));
 });
 
@@ -153,6 +198,7 @@ api.delete('/workbenches/:id', authMiddleware, (req, res) => {
   const wb = ownWorkbench(req.user.id, req.params.id);
   if (!wb) return res.status(404).json({ error: 'Workbench not found' });
   db.prepare('DELETE FROM workbenches WHERE id = ?').run(wb.id);
+  sseBroadcast(req.user.id, { kind: 'workbenches', workbenchId: wb.id });
   res.json({ ok: true });
 });
 
@@ -209,6 +255,7 @@ api.post('/workbenches/:id/shifts', authMiddleware, (req, res) => {
     return res.status(400).json({ error: e.message });
   }
   const rows = created.map((id) => mapShift(db.prepare('SELECT * FROM shifts WHERE id = ?').get(id)));
+  sseBroadcast(req.user.id, { kind: 'shifts', workbenchId: wb.id });
   res.json(Array.isArray(req.body) ? rows : rows[0]);
 });
 
@@ -220,6 +267,7 @@ api.put('/workbenches/:id/shifts/:shiftId', authMiddleware, (req, res) => {
   const vals = buildShiftValues(req.body || {}, shift);
   const setClause = SHIFT_FIELDS.map((f) => `${f} = @${f}`).join(', ');
   db.prepare(`UPDATE shifts SET ${setClause} WHERE id = @id`).run({ ...vals, id: shift.id });
+  sseBroadcast(req.user.id, { kind: 'shifts', workbenchId: wb.id });
   res.json(mapShift(db.prepare('SELECT * FROM shifts WHERE id = ?').get(shift.id)));
 });
 
@@ -228,6 +276,7 @@ api.delete('/workbenches/:id/shifts/:shiftId', authMiddleware, (req, res) => {
   if (!wb) return res.status(404).json({ error: 'Workbench not found' });
   const info = db.prepare('DELETE FROM shifts WHERE id = ? AND workbench_id = ?').run(req.params.shiftId, wb.id);
   if (!info.changes) return res.status(404).json({ error: 'Shift not found' });
+  sseBroadcast(req.user.id, { kind: 'shifts', workbenchId: wb.id });
   res.json({ ok: true });
 });
 
