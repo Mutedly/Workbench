@@ -309,6 +309,15 @@ select { cursor: pointer; }
 .trend.down { color: var(--danger); }
 .trend.flat { color: var(--text-faint); }
 .stat .value .of { font-size: 16px; color: var(--text-faint); font-weight: 600; }
+
+/* split stat: two metrics in one container with a vertical divider */
+.stat-split { grid-column: span 2; display: flex; align-items: stretch; gap: 20px; }
+.stat-split .split-col { flex: 1; min-width: 0; }
+.stat-split .split-line { width: 1px; background: var(--border); flex-shrink: 0; align-self: stretch; }
+@media (max-width: 480px) {
+  .stat-split { flex-direction: column; gap: 16px; }
+  .stat-split .split-line { width: auto; height: 1px; }
+}
 .stat .value { font-size: 27px; font-weight: 600; margin-top: 8px; letter-spacing: -0.03em; font-family: var(--font-mono); }
 .stat .sub { font-size: 12px; color: var(--text-soft); margin-top: 5px; }
 

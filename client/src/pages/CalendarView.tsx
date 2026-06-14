@@ -138,19 +138,22 @@ export default function CalendarView() {
           </div>
           <div className="sub">net · ≈{fmtHours(stats.forecastHours)} projected · {money(stats.earned.net, workbench.currency)} earned</div>
         </div>
-        <div className="stat">
-          <div className="label">Active days</div>
-          <div className="value">
-            {info.activeDays} <span className="of">/ {daysTotal}</span>
+        <div className="stat stat-split">
+          <div className="split-col">
+            <div className="label">Active days</div>
+            <div className="value">
+              {info.activeDays} <span className="of">/ {daysTotal}</span>
+            </div>
+            <div className="sub">days with a shift</div>
+            <div style={{ marginTop: 8 }}><Progress pct={daysTotal ? (info.activeDays / daysTotal) * 100 : 0} /></div>
           </div>
-          <div className="sub">days with a shift</div>
-          <div style={{ marginTop: 8 }}><Progress pct={daysTotal ? (info.activeDays / daysTotal) * 100 : 0} /></div>
-        </div>
-        <div className="stat">
-          <div className="label">Goal progress</div>
-          <div className="value">{Math.round(stats.progressPct)}%</div>
-          <div className="sub">{fmtHours(stats.totalHours)} of {fmtHours(stats.targetHours)}</div>
-          <div style={{ marginTop: 8 }}><Progress pct={stats.progressPct} /></div>
+          <div className="split-line" />
+          <div className="split-col">
+            <div className="label">Goal progress</div>
+            <div className="value">{Math.round(stats.progressPct)}%</div>
+            <div className="sub">{fmtHours(stats.totalHours)} of {fmtHours(stats.targetHours)}</div>
+            <div style={{ marginTop: 8 }}><Progress pct={stats.progressPct} /></div>
+          </div>
         </div>
       </div>
 
