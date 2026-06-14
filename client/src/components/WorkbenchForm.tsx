@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
 import { useToast } from './Toast';
+import Switch from './Switch';
 
 export type WbValues = Pick<
   Workbench,
@@ -157,25 +158,23 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
           </div>
         )}
         <div className="divider" />
-        <label className="row-tight" style={{ cursor: 'pointer', fontWeight: 600 }}>
-          <input type="checkbox" checked={!!v.paid_breaks}
-            onChange={(e) => set('paid_breaks', e.target.checked ? 1 : 0)} />
-          Paid breaks — don't deduct break time from hours
-        </label>
-        <span className="hint" style={{ marginTop: -8 }}>
-          Turn on if you're paid for breaks. Applies to every shift; you can still override per shift.
-        </span>
+        <Switch
+          checked={!!v.paid_breaks}
+          onChange={(c) => set('paid_breaks', c ? 1 : 0)}
+          label="Paid breaks"
+          hint="Don't deduct break time from hours. Applies to every shift (override per shift if needed)."
+        />
       </div>
 
       {/* Overtime & premiums */}
       {v.salary_mode === 'hourly' && (
         <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <h3>Overtime & rate rules</h3>
-          <label className="row-tight" style={{ cursor: 'pointer', fontWeight: 600 }}>
-            <input type="checkbox" checked={!!v.overtime_enabled}
-              onChange={(e) => set('overtime_enabled', e.target.checked ? 1 : 0)} />
-            Enable overtime pay
-          </label>
+          <Switch
+            checked={!!v.overtime_enabled}
+            onChange={(c) => set('overtime_enabled', c ? 1 : 0)}
+            label="Enable overtime pay"
+          />
           {!!v.overtime_enabled && (
             <div className="form-grid">
               <div className="field">
@@ -250,12 +249,12 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
             <span className="hint">Added automatically for each day you have a work shift.</span>
           </div>
           <div className="field" style={{ justifyContent: 'flex-end' }}>
-            <label className="row-tight" style={{ cursor: 'pointer', fontWeight: 600 }}>
-              <input type="checkbox" checked={!!v.travel_taxable}
-                onChange={(e) => set('travel_taxable', e.target.checked ? 1 : 0)} />
-              Travel is taxable
-            </label>
-            <span className="hint">In Israel travel reimbursement is usually tax-free — leave off.</span>
+            <Switch
+              checked={!!v.travel_taxable}
+              onChange={(c) => set('travel_taxable', c ? 1 : 0)}
+              label="Travel is taxable"
+              hint="In Israel travel reimbursement is usually tax-free — leave off."
+            />
           </div>
         </div>
       </div>

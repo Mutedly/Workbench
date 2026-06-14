@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { EntryType, Shift, ShiftDraft, Workbench } from '../types';
 import { SHIFT_TAGS } from '../types';
 import { fmtHours, money, shiftGross, shiftHours, toKey } from '../calc';
+import Switch from './Switch';
 import { IconClose, IconCopy, IconTrash, IconRepeat } from './Icons';
 
 export interface ShiftHandlers {
@@ -160,17 +161,6 @@ export default function ShiftModal({
                   <label>Break (minutes)</label>
                   <input type="number" min={0} value={draft.break_minutes}
                     onChange={(e) => set('break_minutes', Number(e.target.value))} />
-                  <select
-                    value={draft.paid_break == null ? '' : String(draft.paid_break)}
-                    onChange={(e) => set('paid_break', e.target.value === '' ? null : (Number(e.target.value) as 0 | 1))}
-                    style={{ marginTop: 6 }}
-                  >
-                    <option value="">
-                      Break pay: workbench default ({workbench.paid_breaks ? 'paid' : 'deducted'})
-                    </option>
-                    <option value="1">Paid break — don't deduct</option>
-                    <option value="0">Unpaid break — deduct</option>
-                  </select>
                 </div>
                 <div className="field">
                   <label>Custom hourly rate <span className="hint">optional</span></label>
@@ -179,6 +169,26 @@ export default function ShiftModal({
                     onChange={(e) => set('custom_rate', e.target.value === '' ? null : Number(e.target.value))} />
                 </div>
               </div>
+              {draft.break_minutes > 0 && (
+                <div className="card" style={{ padding: '12px 14px', background: 'var(--bg-elev-2)' }}>
+                  <Switch
+                    checked={draft.paid_break == null ? !!workbench.paid_breaks : draft.paid_break === 1}
+                    onChange={(c) => set('paid_break', c ? 1 : 0)}
+                    label="Paid break"
+                    hint={
+                      draft.paid_break == null
+                        ? `Following workbench default (${workbench.paid_breaks ? 'paid' : 'deducted'})`
+                        : 'Custom for this shift'
+                    }
+                  />
+                  {draft.paid_break != null && (
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
+                      onClick={() => set('paid_break', null)}>
+                      Reset to workbench default
+                    </button>
+                  )}
+                </div>
+              )}
             </>
           )}
 
