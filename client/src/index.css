@@ -1,20 +1,21 @@
 :root {
   /* light theme */
-  --backdrop: #dfe3ec;
-  --bg: #f1f3f8;
+  --backdrop: #e7e3f4;
+  --bg: #f3f2f9;
   --bg-elev: #ffffff;
-  --bg-elev-2: #f0f2f8;
-  --surface-hover: #e9ebf3;
-  --border: rgba(18, 22, 40, 0.09);
-  --border-strong: rgba(18, 22, 40, 0.16);
+  --bg-elev-2: #f2f1f9;
+  --surface-hover: #edeaf6;
+  --border: rgba(28, 22, 50, 0.09);
+  --border-strong: rgba(28, 22, 50, 0.15);
   --card-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  --text: #15171f;
-  --text-soft: #565b6b;
-  --text-faint: #8b90a1;
-  --primary: #4f7bff;
-  --primary-soft: rgba(79, 123, 255, 0.12);
-  --primary-text: #3a63e0;
-  --accent: linear-gradient(135deg, #4f7bff, #9b5cff);
+  --text: #18151f;
+  --text-soft: #5b566b;
+  --text-faint: #8d89a1;
+  --primary: #7c5cff;
+  --primary-soft: rgba(124, 92, 255, 0.13);
+  --primary-text: #6b46e5;
+  --accent: linear-gradient(135deg, #8b5cf6, #c084fc);
+  --accent-2: linear-gradient(135deg, #a855f7, #ec4899);
   --success: #18a957;
   --success-soft: rgba(24, 169, 87, 0.12);
   --warn: #d98313;
@@ -32,21 +33,22 @@
 }
 
 html[data-theme='dark'] {
-  --backdrop: #06070a;
-  --bg: #0b0d12;
-  --bg-elev: #13161d;
-  --bg-elev-2: #0a0c11;
-  --surface-hover: #1e222c;
+  --backdrop: #a99ed6;
+  --bg: #0e0d14;
+  --bg-elev: #16151e;
+  --bg-elev-2: #100f16;
+  --surface-hover: #211f2c;
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.13);
-  --card-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --text: #e9ebf2;
-  --text-soft: #9aa0b2;
-  --text-faint: #676d7e;
-  --primary: #5681ff;
-  --primary-soft: rgba(86, 129, 255, 0.16);
-  --primary-text: #9db4ff;
-  --accent: linear-gradient(135deg, #4f7bff, #9b5cff);
+  --card-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --text: #ecebf4;
+  --text-soft: #a09cb4;
+  --text-faint: #6c6880;
+  --primary: #8b6dff;
+  --primary-soft: rgba(139, 109, 255, 0.18);
+  --primary-text: #bba6ff;
+  --accent: linear-gradient(135deg, #8b5cf6, #b388ff);
+  --accent-2: linear-gradient(135deg, #a855f7, #ec4899);
   --success: #34d27b;
   --success-soft: rgba(52, 210, 123, 0.14);
   --warn: #fbbf24;
@@ -55,8 +57,8 @@ html[data-theme='dark'] {
   --danger-soft: rgba(244, 98, 92, 0.16);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.6);
-  --glow: radial-gradient(900px 480px at 14% -8%, rgba(79, 123, 255, 0.16), transparent 62%),
-    radial-gradient(700px 420px at 80% -12%, rgba(155, 92, 255, 0.1), transparent 60%);
+  --glow: radial-gradient(900px 480px at 16% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(720px 420px at 88% -12%, rgba(236, 72, 153, 0.12), transparent 60%);
 }
 
 * { box-sizing: border-box; }
@@ -66,6 +68,7 @@ body {
   margin: 0;
   font-family: var(--font);
   background: var(--backdrop);
+  background-image: radial-gradient(1200px 700px at 50% -25%, rgba(255, 255, 255, 0.22), transparent 60%);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -105,12 +108,12 @@ button { font-family: inherit; }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary {
-  background: var(--primary);
+  background: var(--accent);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 4px 16px rgba(79, 123, 255, 0.28);
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.38);
 }
-.btn-primary:hover { filter: brightness(1.07); background: var(--primary); }
+.btn-primary:hover { filter: brightness(1.08); }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-soft); }
 .btn-ghost:hover { background: var(--surface-hover); color: var(--text); }
 .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
@@ -169,7 +172,7 @@ select { cursor: pointer; }
   background-image: var(--glow);
   background-repeat: no-repeat;
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
 }
@@ -200,7 +203,7 @@ select { cursor: pointer; }
   background: var(--accent);
   display: grid; place-items: center;
   color: #fff; font-size: 18px; font-weight: 700;
-  box-shadow: 0 6px 18px rgba(79, 123, 255, 0.4);
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.45);
   flex-shrink: 0;
 }
 .brand-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.25; }
@@ -435,8 +438,8 @@ table.tbl tbody tr:hover { background: var(--surface-hover); }
 .auth-wrap {
   height: 100%; overflow-y: auto; display: grid; place-items: center; padding: 20px;
   background:
-    radial-gradient(1100px 560px at 78% -12%, rgba(79, 123, 255, 0.2), transparent 60%),
-    radial-gradient(900px 520px at 6% 110%, rgba(155, 92, 255, 0.16), transparent 60%),
+    radial-gradient(1100px 560px at 78% -12%, rgba(139, 92, 246, 0.28), transparent 60%),
+    radial-gradient(900px 520px at 6% 110%, rgba(236, 72, 153, 0.18), transparent 60%),
     var(--bg);
 }
 .auth-card { width: 100%; max-width: 412px; }

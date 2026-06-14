@@ -99,7 +99,7 @@ export default function Reports() {
           {months.map((m, i) => (
             <div className="bar-col" key={i}>
               <span className="bar-val">{m.net ? money(m.net, cur) : ''}</span>
-              <div className="bar" style={{ height: `${(m.net / maxNet) * 100}%`, background: 'linear-gradient(180deg, var(--success), #0ea5e9)' }} />
+              <div className="bar" style={{ height: `${(m.net / maxNet) * 100}%`, background: 'linear-gradient(180deg, #ec4899, #a855f7)' }} />
               <span className="bar-label">{m.label}</span>
             </div>
           ))}
