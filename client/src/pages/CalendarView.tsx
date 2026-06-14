@@ -6,6 +6,7 @@ import {
 import type { Shift } from '../types';
 import ShiftModal from '../components/ShiftModal';
 import PayBreakdown from '../components/PayBreakdown';
+import DayDetails from '../components/DayDetails';
 import { Progress } from '../components/ui';
 import { IconChevL, IconChevR, IconPlus } from '../components/Icons';
 
@@ -16,6 +17,7 @@ export default function CalendarView() {
   const today = new Date();
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [modal, setModal] = useState<{ shift: Shift | null; date: string } | null>(null);
+  const [dayModal, setDayModal] = useState<string | null>(null);
 
   const [dragId, setDragId] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
@@ -231,7 +233,7 @@ export default function CalendarView() {
               <div
                 key={c.key}
                 className={`cal-cell ${c.inMonth ? '' : 'muted'} ${c.key === todayKey ? 'today' : ''} ${weekend ? 'weekend' : ''} ${dragOver === c.key ? 'dragover' : ''}`}
-                onClick={() => setModal({ shift: null, date: c.key })}
+                onClick={() => (dayShifts.length >= 3 ? setDayModal(c.key) : setModal({ shift: null, date: c.key }))}
                 onDragOver={(e) => {
                   if (dragId == null) return;
                   e.preventDefault();
@@ -276,12 +278,27 @@ export default function CalendarView() {
                       : s.entry_type === 'vacation' ? '🏖 Vacation' : '🤒 Sick'}
                   </div>
                 ))}
-                {dayShifts.length > 3 && <div className="subtle" style={{ fontSize: 11 }}>+{dayShifts.length - 3} more</div>}
+                {dayShifts.length > 3 && (
+                  <div className="cal-more" onClick={(e) => { e.stopPropagation(); setDayModal(c.key); }}>
+                    +{dayShifts.length - 3} more
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
+
+      {dayModal && (
+        <DayDetails
+          workbench={workbench}
+          date={dayModal}
+          shifts={shiftsByDate[dayModal] || []}
+          onClose={() => setDayModal(null)}
+          onEdit={(s) => { setDayModal(null); setModal({ shift: s, date: s.date }); }}
+          onAdd={() => { const d = dayModal; setDayModal(null); setModal({ shift: null, date: d }); }}
+        />
+      )}
 
       {modal && (
         <ShiftModal
