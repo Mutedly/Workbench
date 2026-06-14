@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { useWorkbench } from './WorkbenchLayout';
 import {
-  computeMonthStats, daysInMonth, fmtHours, money, monthLabel, shiftHours, toKey,
+  computeMonthStats, daysInMonth, fmtHours, money, monthLabel, parseKey, shiftHours, toKey,
 } from '../calc';
 import type { Shift } from '../types';
 import ShiftModal from '../components/ShiftModal';
 import PayBreakdown from '../components/PayBreakdown';
+import Sparkline from '../components/Sparkline';
 import { Progress } from '../components/ui';
 import { IconChevL, IconChevR, IconPlus } from '../components/Icons';
 
@@ -47,6 +48,47 @@ export default function CalendarView() {
     return map;
   }, [shifts]);
 
+  const daysTotal = daysInMonth(year, month0);
+
+  const info = useMemo(() => {
+    const monthWork = shifts.filter((s) => {
+      const d = parseKey(s.date);
+      return d.getFullYear() === year && d.getMonth() === month0 && s.entry_type === 'work' && shiftHours(s, workbench) > 0;
+    });
+    const activeDays = new Set(monthWork.map((s) => s.date)).size;
+
+    // weekly hour buckets within the month (≈ 4-5 weeks)
+    const buckets: number[] = [];
+    for (const s of monthWork) {
+      const wi = Math.floor((parseKey(s.date).getDate() - 1) / 7);
+      buckets[wi] = (buckets[wi] || 0) + shiftHours(s, workbench);
+    }
+    const isThisMonth = today.getFullYear() === year && today.getMonth() === month0;
+    const lastWeek = isThisMonth ? Math.floor((today.getDate() - 1) / 7) : Math.ceil(daysTotal / 7) - 1;
+    const weekly: number[] = [];
+    for (let i = 0; i <= lastWeek; i++) weekly.push(buckets[i] || 0);
+
+    // linear-regression slope for trend direction
+    let slope = 0;
+    if (weekly.length >= 2) {
+      const nn = weekly.length;
+      const mx = (nn - 1) / 2;
+      const my = weekly.reduce((a, b) => a + b, 0) / nn;
+      let num = 0;
+      let den = 0;
+      for (let i = 0; i < nn; i++) { num += (i - mx) * (weekly[i] - my); den += (i - mx) ** 2; }
+      slope = den ? num / den : 0;
+    }
+    const trend: 'up' | 'down' | 'flat' = weekly.length < 2 ? 'flat' : slope > 0.5 ? 'up' : slope < -0.5 ? 'down' : 'flat';
+    return { activeDays, weekly, trend };
+  }, [shifts, workbench, year, month0, daysTotal, today]);
+
+  const trendMeta = {
+    up: { cls: 'up', arrow: '↑', label: 'Trending up' },
+    down: { cls: 'down', arrow: '↓', label: 'Trending down' },
+    flat: { cls: 'flat', arrow: '→', label: 'Steady' },
+  }[info.trend];
+
   const cells = useMemo(() => {
     const firstDow = (new Date(year, month0, 1).getDay() + 6) % 7; // Mon=0
     const total = daysInMonth(year, month0);
@@ -84,7 +126,10 @@ export default function CalendarView() {
         <div className="stat">
           <div className="label">Hours</div>
           <div className="value">{fmtHours(stats.totalHours)}</div>
-          <div className="sub">{stats.shiftsCount} shifts</div>
+          <div className="sub">
+            {stats.shiftsCount} shifts · <span className={`trend ${trendMeta.cls}`}>{trendMeta.arrow} {trendMeta.label}</span>
+          </div>
+          <Sparkline data={info.weekly} height={36} />
         </div>
         <div className="stat">
           <div className="label">Forecast income</div>
@@ -94,8 +139,17 @@ export default function CalendarView() {
           <div className="sub">net · ≈{fmtHours(stats.forecastHours)} projected · {money(stats.earned.net, workbench.currency)} earned</div>
         </div>
         <div className="stat">
+          <div className="label">Active days</div>
+          <div className="value">
+            {info.activeDays} <span className="of">/ {daysTotal}</span>
+          </div>
+          <div className="sub">days with a shift</div>
+          <div style={{ marginTop: 8 }}><Progress pct={daysTotal ? (info.activeDays / daysTotal) * 100 : 0} /></div>
+        </div>
+        <div className="stat">
           <div className="label">Goal progress</div>
           <div className="value">{Math.round(stats.progressPct)}%</div>
+          <div className="sub">{fmtHours(stats.totalHours)} of {fmtHours(stats.targetHours)}</div>
           <div style={{ marginTop: 8 }}><Progress pct={stats.progressPct} /></div>
         </div>
       </div>
