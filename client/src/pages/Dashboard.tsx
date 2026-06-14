@@ -123,7 +123,7 @@ function OverallStrip({ workbenches, shiftsByWb }: { workbenches: Workbench[]; s
     for (const wb of workbenches) {
       const stats = computeMonthStats(wb, shiftsByWb[wb.id] || [], now.getFullYear(), now.getMonth());
       hours += stats.totalHours;
-      byCurrency[wb.currency] = (byCurrency[wb.currency] || 0) + stats.projectedNet;
+      byCurrency[wb.currency] = (byCurrency[wb.currency] || 0) + stats.planned.net;
     }
     return { hours, byCurrency };
   }, [workbenches, shiftsByWb]);
@@ -145,11 +145,11 @@ function OverallStrip({ workbenches, shiftsByWb }: { workbenches: Workbench[]; s
         <div className="sub">across all workbenches</div>
       </div>
       <div className="stat">
-        <div className="label">Projected net income</div>
+        <div className="label">Planned net income</div>
         <div className="value" style={{ color: 'var(--success)', fontSize: incomeParts.length > 1 ? 18 : 26 }}>
           {incomeParts.length ? incomeParts.join(' + ') : '—'}
         </div>
-        <div className="sub">estimated at current pace</div>
+        <div className="sub">net · all shifts entered this month</div>
       </div>
     </div>
   );

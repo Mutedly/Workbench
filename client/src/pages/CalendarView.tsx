@@ -67,11 +67,11 @@ export default function CalendarView() {
           <div className="sub">{stats.shiftsCount} shifts</div>
         </div>
         <div className="stat">
-          <div className="label">Expected income</div>
-          <div className="value" style={{ color: 'var(--primary-text)' }}>
-            {money(stats.projectedTax.net, workbench.currency)}
+          <div className="label">Planned income</div>
+          <div className="value" style={{ color: 'var(--success)' }}>
+            {money(stats.planned.net, workbench.currency)}
           </div>
-          <div className="sub">net, at current pace</div>
+          <div className="sub">net · {money(stats.earned.net, workbench.currency)} earned so far</div>
         </div>
         <div className="stat">
           <div className="label">Goal progress</div>
@@ -81,8 +81,8 @@ export default function CalendarView() {
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <PayBreakdown tax={stats.tax} currency={workbench.currency} title={`${monthLabel(year, month0)} pay`}
-          note={stats.tax.model === 'israel' ? 'Israeli tax 2026' : undefined} />
+        <PayBreakdown tax={stats.planned} currency={workbench.currency} title={`${monthLabel(year, month0)} · planned pay`}
+          note={stats.planned.model === 'israel' ? 'Israeli tax 2026' : undefined} />
       </div>
 
       <div className="card card-pad">

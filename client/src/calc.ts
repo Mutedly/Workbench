@@ -183,8 +183,13 @@ export interface MonthStats {
   projectedHours: number;
   projectedGross: number;
   projectedNet: number;
-  tax: TaxBreakdown;
-  projectedTax: TaxBreakdown;
+  tax: TaxBreakdown; // planned: all entered shifts in the month
+  projectedTax: TaxBreakdown; // calendar-pace projection
+  earned: TaxBreakdown; // earned so far (shifts up to & incl. today)
+  planned: TaxBreakdown; // alias of `tax` for clarity
+  goal: TaxBreakdown; // income if the monthly hour target is reached
+  earnedHours: number;
+  goalHours: number;
   isCurrentMonth: boolean;
   daysElapsed: number;
   daysTotal: number;
@@ -205,14 +210,27 @@ export function computeMonthStats(
 ): MonthStats {
   const monthShifts = shiftsInMonth(allShifts, year, month0);
   const workShifts = monthShifts.filter((s) => s.entry_type === 'work');
+  const isMonthly = wb.salary_mode === 'monthly';
+  const todayK = todayKey();
 
+  // PLANNED = every shift entered in the month (past + future).
   let totalHours = 0;
   let overtimeHours = 0;
   let grossHourly = 0;
+  // EARNED = only shifts up to & including today.
+  let earnedHours = 0;
+  let earnedGrossHourly = 0;
+  const earnedDates = new Set<string>();
   for (const s of workShifts) {
-    totalHours += shiftHours(s, wb);
+    const h = shiftHours(s, wb);
+    totalHours += h;
     overtimeHours += shiftOvertimeHours(s, wb);
     grossHourly += shiftGross(s, wb);
+    if (s.date <= todayK) {
+      earnedHours += h;
+      earnedGrossHourly += shiftGross(s, wb);
+      if (h > 0) earnedDates.add(s.date);
+    }
   }
 
   const vacationUsed = monthShifts.filter((s) => s.entry_type === 'vacation').length;
@@ -220,33 +238,58 @@ export function computeMonthStats(
 
   // Travel allowance is paid per distinct commuting (work) day.
   const travelDays = new Set(workShifts.filter((s) => shiftHours(s, wb) > 0).map((s) => s.date)).size;
+  const earnedTravelDays = earnedDates.size;
 
-  const grossWork = wb.salary_mode === 'monthly' ? wb.monthly_salary : grossHourly;
-  const tax = computePay(wb, grossWork, travelDays);
-  const gross = tax.gross;
-  const net = tax.net;
+  const now = new Date();
+  const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month0;
+  const monthInPast = year < now.getFullYear() || (year === now.getFullYear() && month0 < now.getMonth());
+  const daysTotal = daysInMonth(year, month0);
+  const daysElapsed = isCurrentMonth ? now.getDate() : daysTotal;
+  const factor = isCurrentMonth && daysElapsed > 0 ? daysTotal / daysElapsed : 1;
+  const elapsedRatio = isCurrentMonth ? daysElapsed / daysTotal : monthInPast ? 1 : 0;
+
+  const targetHours = wb.monthly_hour_target;
+
+  // ---- build the four income scenarios ----
+  // PLANNED — everything entered.
+  const plannedWork = isMonthly ? wb.monthly_salary : grossHourly;
+  const planned = computePay(wb, plannedWork, travelDays);
+
+  // EARNED so far.
+  const earnedWork = isMonthly ? wb.monthly_salary * elapsedRatio : earnedGrossHourly;
+  const earned = computePay(wb, earnedWork, earnedTravelDays);
+
+  // PACE — extrapolate what's been earned so far across the whole month.
+  const paceWork = isMonthly ? wb.monthly_salary : earnedGrossHourly * factor;
+  const paceTravelDays = isCurrentMonth ? earnedTravelDays * factor : earnedTravelDays;
+  const projectedTax = computePay(wb, paceWork, paceTravelDays);
+  const projectedHours = isCurrentMonth ? earnedHours * factor : earnedHours;
+  const projectedGross = projectedTax.gross;
+  const projectedNet = projectedTax.net;
+
+  // GOAL — income if the monthly hour target is reached.
+  let goalWork: number;
+  let goalTravelDays: number;
+  if (isMonthly) {
+    goalWork = wb.monthly_salary;
+    goalTravelDays = travelDays;
+  } else {
+    const avgRate = totalHours > 0 ? grossHourly / totalHours : wb.default_rate;
+    goalWork = avgRate * targetHours;
+    goalTravelDays = totalHours > 0 ? travelDays * (targetHours / totalHours) : Math.round(targetHours / 8);
+  }
+  const goal = computePay(wb, goalWork, goalTravelDays);
+
+  const tax = planned;
+  const gross = planned.gross;
+  const net = planned.net;
 
   const shiftsCount = workShifts.length;
   const avgHoursPerShift = shiftsCount ? totalHours / shiftsCount : 0;
   const avgEarningsPerShift = shiftsCount ? gross / shiftsCount : 0;
 
-  const targetHours = wb.monthly_hour_target;
   const remainingHours = Math.max(0, targetHours - totalHours);
   const progressPct = targetHours > 0 ? Math.min(100, (totalHours / targetHours) * 100) : 0;
-
-  const now = new Date();
-  const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month0;
-  const daysTotal = daysInMonth(year, month0);
-  const daysElapsed = isCurrentMonth ? now.getDate() : daysTotal;
-  const factor = isCurrentMonth && daysElapsed > 0 ? daysTotal / daysElapsed : 1;
-
-  const projectedHours = isCurrentMonth ? totalHours * factor : totalHours;
-  const projectedWork =
-    wb.salary_mode === 'monthly' ? wb.monthly_salary : (isCurrentMonth ? grossHourly * factor : grossWork);
-  const projectedTravelDays = isCurrentMonth ? travelDays * factor : travelDays;
-  const projectedTax = computePay(wb, projectedWork, projectedTravelDays);
-  const projectedGross = projectedTax.gross;
-  const projectedNet = projectedTax.net;
 
   return {
     year,
@@ -268,6 +311,11 @@ export function computeMonthStats(
     projectedNet,
     tax,
     projectedTax,
+    earned,
+    planned,
+    goal,
+    earnedHours,
+    goalHours: targetHours,
     isCurrentMonth,
     daysElapsed,
     daysTotal,

@@ -49,19 +49,49 @@ export default function Summary() {
         </div>
       </div>
 
+      <h3 style={{ margin: '4px 0 12px' }}>Income</h3>
+      <div className="grid grid-stats" style={{ marginBottom: 16 }}>
+        <Stat
+          highlight
+          label="Earned so far"
+          value={money(stats.earned.net, cur)}
+          accent="var(--success)"
+          sub={`net · ${money(stats.earned.gross, cur)} gross`}
+          info="Actual pay from shifts dated up to and including today."
+        />
+        <Stat
+          highlight
+          label="Planned this month"
+          value={money(stats.planned.net, cur)}
+          sub={`net · ${fmtHours(stats.totalHours)} entered`}
+          info="Based on every shift in your calendar this month, including upcoming ones. The number that reflects your real plan."
+        />
+        <Stat
+          label="Projected (calendar pace)"
+          value={money(stats.projectedNet, cur)}
+          accent="var(--primary-text)"
+          sub="net · statistical forecast"
+          info="A forecast: what you've earned so far, scaled to the whole month by how many days have passed. It does NOT use your upcoming shifts, so it can be misleading."
+        />
+        <Stat
+          label="If goal reached"
+          value={money(stats.goal.net, cur)}
+          sub={`net · at ${fmtHours(stats.goalHours)} target`}
+          info={`How much you'd take home if you work exactly your ${fmtHours(stats.goalHours)} monthly target.`}
+        />
+      </div>
+
       <div style={{ marginBottom: 16 }}>
-        <PayBreakdown tax={stats.tax} currency={cur} title={`${monthLabel(year, month0)} pay`}
-          note={stats.tax.model === 'israel' ? 'Israeli tax 2026' : undefined} />
+        <PayBreakdown tax={stats.planned} currency={cur} title={`${monthLabel(year, month0)} · planned pay`}
+          note={stats.planned.model === 'israel' ? 'Israeli tax 2026' : undefined} />
       </div>
 
       <div className="grid grid-stats">
         <Stat label="Hours worked" value={fmtHours(stats.totalHours)} sub={`${stats.shiftsCount} shifts`} />
-        <Stat label="Expected net income" value={money(stats.projectedTax.net, cur)}
-          accent="var(--primary-text)" sub="at current pace" />
         <Stat label="Avg hours / shift" value={fmtHours(stats.avgHoursPerShift)} />
         <Stat label="Avg earnings / shift" value={money(stats.avgEarningsPerShift, cur)} />
         <Stat label="Overtime hours" value={fmtHours(stats.overtimeHours)} />
-        <Stat label="Projected hours" value={fmtHours(stats.projectedHours)} sub="end of month" />
+        <Stat label="Projected hours" value={fmtHours(stats.projectedHours)} sub="calendar pace" />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', marginTop: 16, alignItems: 'start' }}>
