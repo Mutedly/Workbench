@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useWorkbench } from './WorkbenchLayout';
 import {
-  computeMonthStats, daysInMonth, fmtHours, money, monthLabel, parseKey, shiftHours, toKey,
+  computeMonthStats, daysInMonth, fmtHours, money, monthLabel, parseKey, shiftGross, shiftHours, toKey,
 } from '../calc';
 import type { Shift } from '../types';
 import ShiftModal from '../components/ShiftModal';
@@ -20,6 +20,7 @@ export default function CalendarView() {
 
   const [dragId, setDragId] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [bestMetric, setBestMetric] = useState<'hours' | 'money'>('money');
   const draggedRef = useRef(false);
 
   const year = cursor.getFullYear();
@@ -56,6 +57,8 @@ export default function CalendarView() {
       return d.getFullYear() === year && d.getMonth() === month0 && s.entry_type === 'work' && shiftHours(s, workbench) > 0;
     });
     const activeDays = new Set(monthWork.map((s) => s.date)).size;
+    const isThisMonth = today.getFullYear() === year && today.getMonth() === month0;
+    const todayK = toKey(today);
 
     // weekly hour buckets within the month (≈ 4-5 weeks)
     const buckets: number[] = [];
@@ -63,31 +66,60 @@ export default function CalendarView() {
       const wi = Math.floor((parseKey(s.date).getDate() - 1) / 7);
       buckets[wi] = (buckets[wi] || 0) + shiftHours(s, workbench);
     }
-    const isThisMonth = today.getFullYear() === year && today.getMonth() === month0;
     const lastWeek = isThisMonth ? Math.floor((today.getDate() - 1) / 7) : Math.ceil(daysTotal / 7) - 1;
     const weekly: number[] = [];
     for (let i = 0; i <= lastWeek; i++) weekly.push(buckets[i] || 0);
 
-    // linear-regression slope for trend direction
-    let slope = 0;
-    if (weekly.length >= 2) {
-      const nn = weekly.length;
-      const mx = (nn - 1) / 2;
-      const my = weekly.reduce((a, b) => a + b, 0) / nn;
-      let num = 0;
-      let den = 0;
-      for (let i = 0; i < nn; i++) { num += (i - mx) * (weekly[i] - my); den += (i - mx) ** 2; }
-      slope = den ? num / den : 0;
+    // best day by hours and by money
+    const byDate: Record<string, { hours: number; gross: number }> = {};
+    let earnedHours = 0;
+    let earnedDays = 0;
+    const earnedDateSet = new Set<string>();
+    for (const s of monthWork) {
+      const h = shiftHours(s, workbench);
+      const g = shiftGross(s, workbench);
+      (byDate[s.date] ||= { hours: 0, gross: 0 });
+      byDate[s.date].hours += h;
+      byDate[s.date].gross += g;
+      if (s.date <= todayK) { earnedHours += h; earnedDateSet.add(s.date); }
     }
-    const trend: 'up' | 'down' | 'flat' = weekly.length < 2 ? 'flat' : slope > 0.5 ? 'up' : slope < -0.5 ? 'down' : 'flat';
-    return { activeDays, weekly, trend };
+    earnedDays = earnedDateSet.size;
+    let bestHoursDay: { date: string; hours: number; gross: number } | null = null;
+    let bestMoneyDay: { date: string; hours: number; gross: number } | null = null;
+    for (const [date, v] of Object.entries(byDate)) {
+      if (!bestHoursDay || v.hours > bestHoursDay.hours) bestHoursDay = { date, ...v };
+      if (!bestMoneyDay || v.gross > bestMoneyDay.gross) bestMoneyDay = { date, ...v };
+    }
+
+    // pace vs goal — how many hours ahead/behind the expected pace by now
+    const daysElapsed = isThisMonth ? today.getDate() : daysTotal;
+    const weeksElapsed = Math.max(daysElapsed / 7, 0.001);
+    const avgShiftHours = earnedDays > 0 ? earnedHours / earnedDays : 8;
+    let weeklyHoursGoal = 0;
+    if (workbench.plan_enabled && workbench.min_hours_per_week > 0) {
+      weeklyHoursGoal = workbench.min_hours_per_week;
+    } else if (workbench.plan_enabled && workbench.min_shifts_per_week > 0) {
+      weeklyHoursGoal = workbench.min_shifts_per_week * avgShiftHours;
+    } else if (workbench.monthly_hour_target > 0) {
+      weeklyHoursGoal = workbench.monthly_hour_target / (daysTotal / 7);
+    }
+    const expectedByNow = weeklyHoursGoal * weeksElapsed;
+    const paceDiff = earnedHours - expectedByNow;
+    const hasGoal = weeklyHoursGoal > 0;
+
+    return { activeDays, weekly, bestHoursDay, bestMoneyDay, paceDiff, hasGoal };
   }, [shifts, workbench, year, month0, daysTotal, today]);
 
-  const trendMeta = {
-    up: { cls: 'up', arrow: '↑', label: 'Trending up' },
-    down: { cls: 'down', arrow: '↓', label: 'Trending down' },
-    flat: { cls: 'flat', arrow: '→', label: 'Steady' },
-  }[info.trend];
+  const pace = (() => {
+    if (!info.hasGoal) return { cls: 'flat', text: 'No goal set' };
+    const mag = Math.abs(info.paceDiff);
+    if (mag < 0.5) return { cls: 'flat', text: 'On pace' };
+    return info.paceDiff > 0
+      ? { cls: 'up', text: `On track · +${fmtHours(mag)} ahead` }
+      : { cls: 'down', text: `Behind · −${fmtHours(mag)}` };
+  })();
+
+  const bestDay = bestMetric === 'money' ? info.bestMoneyDay : info.bestHoursDay;
 
   const cells = useMemo(() => {
     const firstDow = (new Date(year, month0, 1).getDay() + 6) % 7; // Mon=0
@@ -127,9 +159,35 @@ export default function CalendarView() {
           <div className="label">Hours</div>
           <div className="value">{fmtHours(stats.totalHours)}</div>
           <div className="sub">
-            {stats.shiftsCount} shifts · <span className={`trend ${trendMeta.cls}`}>{trendMeta.arrow} {trendMeta.label}</span>
+            {stats.shiftsCount} shifts · <span className={`trend ${pace.cls}`}>{pace.text}</span>
           </div>
           <Sparkline data={info.weekly} height={36} />
+        </div>
+        <div className="stat">
+          <div className="label" style={{ justifyContent: 'space-between' }}>
+            <span>Best day</span>
+            <span className="mini-seg">
+              <button className={bestMetric === 'hours' ? 'on' : ''} onClick={() => setBestMetric('hours')}>Hours</button>
+              <button className={bestMetric === 'money' ? 'on' : ''} onClick={() => setBestMetric('money')}>Money</button>
+            </span>
+          </div>
+          {bestDay ? (
+            <>
+              <div className="value" style={{ color: 'var(--success)' }}>
+                {bestMetric === 'money' ? money(bestDay.gross, workbench.currency) : fmtHours(bestDay.hours)}
+              </div>
+              <div className="sub">
+                {parseKey(bestDay.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                {' · '}
+                {bestMetric === 'money' ? fmtHours(bestDay.hours) : money(bestDay.gross, workbench.currency)}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="value">—</div>
+              <div className="sub">no shifts yet</div>
+            </>
+          )}
         </div>
         <div className="stat">
           <div className="label">Forecast income</div>

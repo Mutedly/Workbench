@@ -28,6 +28,7 @@ export interface Workbench {
   plan_enabled: number;
   min_days_per_month: number;
   min_hours_per_week: number;
+  min_shifts_per_week: number;
   tax_rate: number;
   tax_model: TaxModel;
   credit_points: number;

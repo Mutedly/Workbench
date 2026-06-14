@@ -308,6 +308,18 @@ select { cursor: pointer; }
 .trend.up { color: var(--success); }
 .trend.down { color: var(--danger); }
 .trend.flat { color: var(--text-faint); }
+
+/* mini segmented toggle (e.g. Best day hours/money) */
+.mini-seg {
+  display: inline-flex; gap: 2px; padding: 2px;
+  background: var(--bg-elev-2); border: 1px solid var(--border); border-radius: 999px;
+}
+.mini-seg button {
+  border: none; background: transparent; color: var(--text-faint);
+  font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  cursor: pointer; transition: background 0.15s, color 0.15s; text-transform: none; letter-spacing: 0;
+}
+.mini-seg button.on { background: var(--primary); color: #fff; }
 .stat .value .of { font-size: 16px; color: var(--text-faint); font-weight: 600; }
 
 /* split stat: two metrics in one container with a vertical divider */

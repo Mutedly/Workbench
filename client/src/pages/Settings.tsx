@@ -28,6 +28,7 @@ export default function Settings() {
     plan_enabled: workbench.plan_enabled,
     min_days_per_month: workbench.min_days_per_month,
     min_hours_per_week: workbench.min_hours_per_week,
+    min_shifts_per_week: workbench.min_shifts_per_week,
     tax_rate: workbench.tax_rate,
     tax_model: workbench.tax_model,
     credit_points: workbench.credit_points,

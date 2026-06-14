@@ -67,7 +67,7 @@ const WORKBENCH_FIELDS = [
   'overtime_enabled', 'overtime_daily_threshold', 'overtime_multiplier',
   'weekend_multiplier', 'holiday_multiplier', 'night_multiplier',
   'vacation_days_total', 'sick_days_total', 'monthly_hour_target', 'paid_breaks',
-  'plan_enabled', 'min_days_per_month', 'min_hours_per_week',
+  'plan_enabled', 'min_days_per_month', 'min_hours_per_week', 'min_shifts_per_week',
   'tax_rate', 'tax_model', 'credit_points', 'travel_per_day', 'travel_taxable',
   'currency', 'color', 'notes',
 ];
@@ -152,6 +152,7 @@ api.post('/workbenches', authMiddleware, (req, res) => {
     plan_enabled: b.plan_enabled ? 1 : 0,
     min_days_per_month: num(b.min_days_per_month, 0),
     min_hours_per_week: num(b.min_hours_per_week, 0),
+    min_shifts_per_week: num(b.min_shifts_per_week, 0),
     tax_rate: num(b.tax_rate, 0),
     tax_model: b.tax_model === 'israel' ? 'israel' : 'flat',
     credit_points: num(b.credit_points, 2.25),

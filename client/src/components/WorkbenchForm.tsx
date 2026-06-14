@@ -11,7 +11,7 @@ export type WbValues = Pick<
   | 'overtime_enabled' | 'overtime_daily_threshold' | 'overtime_multiplier'
   | 'weekend_multiplier' | 'holiday_multiplier' | 'night_multiplier'
   | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target' | 'paid_breaks'
-  | 'plan_enabled' | 'min_days_per_month' | 'min_hours_per_week'
+  | 'plan_enabled' | 'min_days_per_month' | 'min_hours_per_week' | 'min_shifts_per_week'
   | 'tax_rate' | 'tax_model' | 'credit_points'
   | 'travel_per_day' | 'travel_taxable' | 'currency' | 'color' | 'notes'
 >;
@@ -35,6 +35,7 @@ export const defaultValues: WbValues = {
   plan_enabled: 0,
   min_days_per_month: 0,
   min_hours_per_week: 0,
+  min_shifts_per_week: 0,
   tax_rate: 0,
   tax_model: 'flat',
   credit_points: 2.25,
@@ -358,6 +359,11 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, en
         />
         {!!v.plan_enabled && (
           <div className="form-grid">
+            <div className="field">
+              <label>Weekly goal · minimum shifts / week</label>
+              <input type="number" min={0} value={v.min_shifts_per_week} onChange={numField('min_shifts_per_week')} />
+              <span className="hint">e.g. at least 3 shifts every week</span>
+            </div>
             <div className="field">
               <label>Minimum hours / week</label>
               <input type="number" min={0} step="0.5" value={v.min_hours_per_week} onChange={numField('min_hours_per_week')} />
