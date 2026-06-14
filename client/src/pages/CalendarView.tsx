@@ -87,11 +87,11 @@ export default function CalendarView() {
           <div className="sub">{stats.shiftsCount} shifts</div>
         </div>
         <div className="stat">
-          <div className="label">Planned income</div>
-          <div className="value" style={{ color: 'var(--success)' }}>
-            {money(stats.planned.net, workbench.currency)}
+          <div className="label">Forecast income</div>
+          <div className="value" style={{ color: 'var(--primary-text)' }}>
+            {money(stats.forecast.net, workbench.currency)}
           </div>
-          <div className="sub">net · {money(stats.earned.net, workbench.currency)} earned so far</div>
+          <div className="sub">net · ≈{fmtHours(stats.forecastHours)} projected · {money(stats.earned.net, workbench.currency)} earned</div>
         </div>
         <div className="stat">
           <div className="label">Goal progress</div>

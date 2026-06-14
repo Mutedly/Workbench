@@ -188,8 +188,10 @@ export interface MonthStats {
   earned: TaxBreakdown; // earned so far (shifts up to & incl. today)
   planned: TaxBreakdown; // alias of `tax` for clarity
   goal: TaxBreakdown; // income if the monthly hour target is reached
+  forecast: TaxBreakdown; // work-rate forecast (hours-based, guided by work plan)
   earnedHours: number;
   goalHours: number;
+  forecastHours: number;
   isCurrentMonth: boolean;
   daysElapsed: number;
   daysTotal: number;
@@ -280,6 +282,32 @@ export function computeMonthStats(
   }
   const goal = computePay(wb, goalWork, goalTravelDays);
 
+  // FORECAST — predict the month from how many HOURS have been worked so far
+  // (work-rate based), optionally guided by a weekly/monthly work plan.
+  const weeksTotal = daysTotal / 7;
+  const weeksElapsed = isCurrentMonth ? Math.max(daysElapsed / 7, 0.01) : weeksTotal;
+  const weeksRemaining = Math.max(0, weeksTotal - weeksElapsed);
+  const earnedDaysCount = earnedDates.size;
+  const avgShiftHours = earnedDaysCount > 0 ? earnedHours / earnedDaysCount : 8;
+  const actualWeeklyPace = earnedHours / weeksElapsed;
+
+  let expectedWeekly = actualWeeklyPace;
+  if (wb.plan_enabled && wb.min_hours_per_week > 0) {
+    expectedWeekly = Math.max(actualWeeklyPace, wb.min_hours_per_week);
+  }
+  let forecastHours = isCurrentMonth ? earnedHours + expectedWeekly * weeksRemaining : totalHours;
+  if (wb.plan_enabled && wb.min_days_per_month > 0) {
+    forecastHours = Math.max(forecastHours, wb.min_days_per_month * (avgShiftHours || 8));
+  }
+  // Never forecast below what is already on the calendar.
+  forecastHours = Math.max(forecastHours, totalHours);
+
+  const fcAvgRate = totalHours > 0 ? grossHourly / totalHours
+    : earnedHours > 0 ? earnedGrossHourly / earnedHours : wb.default_rate;
+  const forecastWork = isMonthly ? wb.monthly_salary : fcAvgRate * forecastHours;
+  const forecastTravelDays = isMonthly ? travelDays : Math.round(forecastHours / (avgShiftHours || 8));
+  const forecast = computePay(wb, forecastWork, forecastTravelDays);
+
   const tax = planned;
   const gross = planned.gross;
   const net = planned.net;
@@ -314,8 +342,10 @@ export function computeMonthStats(
     earned,
     planned,
     goal,
+    forecast,
     earnedHours,
     goalHours: targetHours,
+    forecastHours,
     isCurrentMonth,
     daysElapsed,
     daysTotal,

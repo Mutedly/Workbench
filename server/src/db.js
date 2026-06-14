@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS workbenches (
   sick_days_total REAL NOT NULL DEFAULT 0,
   monthly_hour_target REAL NOT NULL DEFAULT 160,
   paid_breaks INTEGER NOT NULL DEFAULT 0,
+  plan_enabled INTEGER NOT NULL DEFAULT 0,
+  min_days_per_month REAL NOT NULL DEFAULT 0,
+  min_hours_per_week REAL NOT NULL DEFAULT 0,
   tax_rate REAL NOT NULL DEFAULT 0,
   tax_model TEXT NOT NULL DEFAULT 'flat',
   credit_points REAL NOT NULL DEFAULT 2.25,
@@ -81,6 +84,9 @@ addColumn('credit_points', 'credit_points REAL NOT NULL DEFAULT 2.25');
 addColumn('travel_per_day', 'travel_per_day REAL NOT NULL DEFAULT 0');
 addColumn('travel_taxable', 'travel_taxable INTEGER NOT NULL DEFAULT 0');
 addColumn('paid_breaks', 'paid_breaks INTEGER NOT NULL DEFAULT 0');
+addColumn('plan_enabled', 'plan_enabled INTEGER NOT NULL DEFAULT 0');
+addColumn('min_days_per_month', 'min_days_per_month REAL NOT NULL DEFAULT 0');
+addColumn('min_hours_per_week', 'min_hours_per_week REAL NOT NULL DEFAULT 0');
 
 const shiftCols = new Set(db.prepare('PRAGMA table_info(shifts)').all().map((c) => c.name));
 if (!shiftCols.has('paid_break')) db.exec('ALTER TABLE shifts ADD COLUMN paid_break INTEGER');

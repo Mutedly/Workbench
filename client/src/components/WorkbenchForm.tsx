@@ -3,7 +3,7 @@ import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
 import { useToast } from './Toast';
 import Switch from './Switch';
-import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget, IconCheck } from './Icons';
+import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget, IconCheck, IconChart } from './Icons';
 
 export type WbValues = Pick<
   Workbench,
@@ -11,6 +11,7 @@ export type WbValues = Pick<
   | 'overtime_enabled' | 'overtime_daily_threshold' | 'overtime_multiplier'
   | 'weekend_multiplier' | 'holiday_multiplier' | 'night_multiplier'
   | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target' | 'paid_breaks'
+  | 'plan_enabled' | 'min_days_per_month' | 'min_hours_per_week'
   | 'tax_rate' | 'tax_model' | 'credit_points'
   | 'travel_per_day' | 'travel_taxable' | 'currency' | 'color' | 'notes'
 >;
@@ -31,6 +32,9 @@ export const defaultValues: WbValues = {
   sick_days_total: 10,
   monthly_hour_target: 160,
   paid_breaks: 0,
+  plan_enabled: 0,
+  min_days_per_month: 0,
+  min_hours_per_week: 0,
   tax_rate: 0,
   tax_model: 'flat',
   credit_points: 2.25,
@@ -338,6 +342,34 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, en
             <input type="number" min={0} value={v.sick_days_total} onChange={numField('sick_days_total')} />
           </div>
         </div>
+      </div>
+
+      {/* Work plan / forecast */}
+      <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="section-head">
+          <span className="icon-chip blue"><IconChart /></span>
+          <div><h3>Work plan · forecast</h3><div className="section-sub">Helps predict your month-end income</div></div>
+        </div>
+        <Switch
+          checked={!!v.plan_enabled}
+          onChange={(c) => set('plan_enabled', c ? 1 : 0)}
+          label="Use a work plan for forecasting"
+          hint="Tell the forecast your usual commitment so it can guess the rest of the month more accurately."
+        />
+        {!!v.plan_enabled && (
+          <div className="form-grid">
+            <div className="field">
+              <label>Minimum hours / week</label>
+              <input type="number" min={0} step="0.5" value={v.min_hours_per_week} onChange={numField('min_hours_per_week')} />
+              <span className="hint">e.g. 4 shifts × 8h = 32h every week</span>
+            </div>
+            <div className="field">
+              <label>Minimum days / month</label>
+              <input type="number" min={0} value={v.min_days_per_month} onChange={numField('min_days_per_month')} />
+              <span className="hint">e.g. at least 16 work days a month</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="row" style={{ justifyContent: 'flex-end' }}>

@@ -25,6 +25,9 @@ export interface Workbench {
   sick_days_total: number;
   monthly_hour_target: number;
   paid_breaks: number;
+  plan_enabled: number;
+  min_days_per_month: number;
+  min_hours_per_week: number;
   tax_rate: number;
   tax_model: TaxModel;
   credit_points: number;

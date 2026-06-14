@@ -67,11 +67,11 @@ export default function Summary() {
           info="Based on every shift in your calendar this month, including upcoming ones. The number that reflects your real plan."
         />
         <Stat
-          label="Projected (calendar pace)"
-          value={money(stats.projectedNet, cur)}
+          label="Forecast (work-rate)"
+          value={money(stats.forecast.net, cur)}
           accent="var(--primary-text)"
-          sub="net · statistical forecast"
-          info="A forecast: what you've earned so far, scaled to the whole month by how many days have passed. It does NOT use your upcoming shifts, so it can be misleading."
+          sub={`net · ≈${fmtHours(stats.forecastHours)} projected`}
+          info="Predicts the whole month from how many HOURS you've worked so far (your weekly work-rate), not calendar days. Set a work plan in Settings (min hours/week, min days/month) to make it sharper."
         />
         <Stat
           label="If goal reached"
@@ -91,7 +91,7 @@ export default function Summary() {
         <Stat label="Avg hours / shift" value={fmtHours(stats.avgHoursPerShift)} />
         <Stat label="Avg earnings / shift" value={money(stats.avgEarningsPerShift, cur)} />
         <Stat label="Overtime hours" value={fmtHours(stats.overtimeHours)} />
-        <Stat label="Projected hours" value={fmtHours(stats.projectedHours)} sub="calendar pace" />
+        <Stat label="Forecast hours" value={fmtHours(stats.forecastHours)} sub="end of month" />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr', marginTop: 16, alignItems: 'start' }}>
