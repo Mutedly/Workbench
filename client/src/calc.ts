@@ -216,7 +216,7 @@ function weekRangeLabel(monday: Date): string {
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'C$', AUD: 'A$',
   CHF: 'CHF ', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', INR: '₹', BRL: 'R$',
-  ZAR: 'R ', PLN: 'zł ', MXN: 'MX$', NZD: 'NZ$', SGD: 'S$',
+  ZAR: 'R ', PLN: 'zł ', MXN: 'MX$', NZD: 'NZ$', SGD: 'S$', ILS: '₪',
 };
 
 export function money(amount: number, currency: string): string {
