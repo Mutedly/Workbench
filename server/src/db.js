@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS workbenches (
   sick_days_total REAL NOT NULL DEFAULT 0,
   monthly_hour_target REAL NOT NULL DEFAULT 160,
   tax_rate REAL NOT NULL DEFAULT 0,
+  tax_model TEXT NOT NULL DEFAULT 'flat',
+  credit_points REAL NOT NULL DEFAULT 2.25,
   currency TEXT NOT NULL DEFAULT 'USD',
   color TEXT NOT NULL DEFAULT '#6366f1',
   notes TEXT NOT NULL DEFAULT '',
@@ -64,5 +66,13 @@ CREATE INDEX IF NOT EXISTS idx_workbenches_user ON workbenches(user_id);
 CREATE INDEX IF NOT EXISTS idx_shifts_workbench ON shifts(workbench_id);
 CREATE INDEX IF NOT EXISTS idx_shifts_date ON shifts(date);
 `);
+
+// Lightweight migrations: add columns to existing databases if they're missing.
+const wbCols = new Set(db.prepare('PRAGMA table_info(workbenches)').all().map((c) => c.name));
+const addColumn = (name, ddl) => {
+  if (!wbCols.has(name)) db.exec(`ALTER TABLE workbenches ADD COLUMN ${ddl}`);
+};
+addColumn('tax_model', "tax_model TEXT NOT NULL DEFAULT 'flat'");
+addColumn('credit_points', 'credit_points REAL NOT NULL DEFAULT 2.25');
 
 export default db;

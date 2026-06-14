@@ -24,7 +24,7 @@ const WORKBENCH_FIELDS = [
   'overtime_enabled', 'overtime_daily_threshold', 'overtime_multiplier',
   'weekend_multiplier', 'holiday_multiplier', 'night_multiplier',
   'vacation_days_total', 'sick_days_total', 'monthly_hour_target',
-  'tax_rate', 'currency', 'color', 'notes',
+  'tax_rate', 'tax_model', 'credit_points', 'currency', 'color', 'notes',
 ];
 
 const SHIFT_FIELDS = [
@@ -104,6 +104,8 @@ api.post('/workbenches', authMiddleware, (req, res) => {
     sick_days_total: num(b.sick_days_total, 0),
     monthly_hour_target: num(b.monthly_hour_target, 160),
     tax_rate: num(b.tax_rate, 0),
+    tax_model: b.tax_model === 'israel' ? 'israel' : 'flat',
+    credit_points: num(b.credit_points, 2.25),
     currency: b.currency || 'USD',
     color: b.color || '#6366f1',
     notes: b.notes || '',
@@ -131,6 +133,7 @@ api.put('/workbenches/:id', authMiddleware, (req, res) => {
     if (f in b) {
       if (f === 'overtime_enabled') updates[f] = b[f] ? 1 : 0;
       else if (f === 'salary_mode') updates[f] = b[f] === 'monthly' ? 'monthly' : 'hourly';
+      else if (f === 'tax_model') updates[f] = b[f] === 'israel' ? 'israel' : 'flat';
       else if (['name', 'currency', 'color', 'notes'].includes(f)) updates[f] = b[f] ?? wb[f];
       else updates[f] = num(b[f], wb[f]);
     }

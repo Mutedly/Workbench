@@ -5,6 +5,7 @@ export interface User {
 }
 
 export type SalaryMode = 'hourly' | 'monthly';
+export type TaxModel = 'flat' | 'israel';
 
 export interface Workbench {
   id: number;
@@ -24,6 +25,8 @@ export interface Workbench {
   sick_days_total: number;
   monthly_hour_target: number;
   tax_rate: number;
+  tax_model: TaxModel;
+  credit_points: number;
   currency: string;
   color: string;
   notes: string;
