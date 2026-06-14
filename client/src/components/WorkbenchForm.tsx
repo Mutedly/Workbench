@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
+import { useToast } from './Toast';
 
 export type WbValues = Pick<
   Workbench,
@@ -43,14 +44,16 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308'
 interface Props {
   initial: WbValues;
   submitLabel: string;
+  successMessage?: string;
   onSubmit: (values: WbValues) => Promise<void>;
   onCancel?: () => void;
 }
 
-export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel }: Props) {
+export default function WorkbenchForm({ initial, submitLabel, successMessage, onSubmit, onCancel }: Props) {
   const [v, setV] = useState<WbValues>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const toast = useToast();
 
   const set = <K extends keyof WbValues>(k: K, val: WbValues[K]) => setV((p) => ({ ...p, [k]: val }));
   const numField = (k: keyof WbValues) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -58,13 +61,17 @@ export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!v.name.trim()) { setError('Please give your workbench a name'); return; }
+    if (!v.name.trim()) { setError('Please give your workbench a name'); toast.error('Please give your workbench a name'); return; }
     setBusy(true);
     setError('');
     try {
       await onSubmit(v);
+      toast.success(successMessage ?? 'Saved');
     } catch (err) {
-      setError((err as Error).message);
+      const msg = (err as Error).message || 'Something went wrong while saving';
+      setError(msg);
+      toast.error(msg);
+    } finally {
       setBusy(false);
     }
   };

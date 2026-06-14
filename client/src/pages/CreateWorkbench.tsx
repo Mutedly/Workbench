@@ -22,6 +22,7 @@ export default function CreateWorkbench() {
       <WorkbenchForm
         initial={defaultValues}
         submitLabel="Create Workbench"
+        successMessage="Workbench created"
         onCancel={() => navigate('/')}
         onSubmit={async (values) => {
           const wb = await api.createWorkbench(values);

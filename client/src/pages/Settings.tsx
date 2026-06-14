@@ -50,6 +50,7 @@ export default function Settings() {
       <WorkbenchForm
         initial={initial}
         submitLabel="Save changes"
+        successMessage="Settings saved"
         onSubmit={async (values) => {
           await saveWorkbench(values);
         }}
