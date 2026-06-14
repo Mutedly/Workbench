@@ -271,8 +271,8 @@ select { cursor: pointer; }
 
 /* ----------------------------- grids ------------------------------- */
 .grid { display: grid; gap: 16px; }
-.grid-cards { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.grid-stats { grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); }
+.grid-cards { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }
 .row-tight { display: flex; gap: 8px; align-items: center; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
