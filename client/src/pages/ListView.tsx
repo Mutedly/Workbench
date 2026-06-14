@@ -3,7 +3,7 @@ import { useWorkbench } from './WorkbenchLayout';
 import { fmtHours, money, parseKey, shiftGross, shiftHours, shiftRate, todayKey } from '../calc';
 import type { Shift } from '../types';
 import { SHIFT_TAGS } from '../types';
-import { getToken } from '../api';
+import { downloadWorkbenchCsv } from '../exportCsv';
 import ShiftModal from '../components/ShiftModal';
 import { IconDownload, IconPlus } from '../components/Icons';
 
@@ -61,18 +61,7 @@ export default function ListView() {
   };
   const arrow = (key: SortKey) => (sort === key ? (dir === 'asc' ? ' ↑' : ' ↓') : '');
 
-  const exportCsv = async () => {
-    const res = await fetch(`/api/workbenches/${workbench.id}/export.csv`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${workbench.name.replace(/[^a-z0-9]/gi, '_')}_shifts.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const exportCsv = () => downloadWorkbenchCsv(workbench, shifts);
 
   return (
     <div>

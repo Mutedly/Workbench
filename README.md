@@ -77,5 +77,22 @@ night). When overtime is enabled, hours beyond the daily threshold (or any shift
 
 For **monthly-salary** Workbenches the gross is the configured monthly salary.
 
-Net salary applies the Workbench's tax/deduction percentage. The "expected income"
-projection scales the current month's totals by `days in month ÷ days elapsed`.
+### Net salary / tax models
+
+Each Workbench can use one of two tax models (Settings → Tax model):
+
+- **Simple percentage** — net = gross × (1 − rate%).
+- **Israeli tax (2026)** — net is computed from the **monthly gross** using the official
+  employee deductions:
+  - **Income tax** — progressive monthly brackets for personal-exertion income
+    (10% / 14% / 20% / 31% / 35% / 47% / 50%), reduced by **credit points**
+    (נקודות זיכוי, ₪242/point/month).
+  - **National Insurance** (ביטוח לאומי) — 1.04% up to ₪7,703 and 7% above (ceiling ₪51,910).
+  - **Health tax** (מס בריאות) — 3.23% up to ₪7,703 and 5.17% above.
+
+  Gross and net are shown side by side with a full deduction breakdown, and the CSV
+  export includes a per-month tax breakdown. Picking **ILS** as the currency selects this
+  model automatically. These figures are estimates, not official payroll advice.
+
+The "expected income" projection scales the current month's totals by
+`days in month ÷ days elapsed`.
