@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useWorkbench } from './WorkbenchLayout';
-import { fmtHours, money, parseKey, shiftGross, shiftHours, shiftRate } from '../calc';
+import { fmtHours, money, parseKey, shiftGross, shiftHours, shiftRate, todayKey } from '../calc';
 import type { Shift } from '../types';
 import { SHIFT_TAGS } from '../types';
 import { getToken } from '../api';
@@ -80,7 +80,7 @@ export default function ListView() {
         <h2>{workbench.name} · Shifts</h2>
         <div className="row-tight">
           <button className="btn" onClick={exportCsv}><IconDownload size={16} /> Export CSV</button>
-          <button className="btn btn-primary" onClick={() => setModal({ shift: null, date: new Date().toISOString().slice(0, 10) })}>
+          <button className="btn btn-primary" onClick={() => setModal({ shift: null, date: todayKey() })}>
             <IconPlus size={16} /> Add shift
           </button>
         </div>

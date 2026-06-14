@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { EntryType, Shift, ShiftDraft, Workbench } from '../types';
 import { SHIFT_TAGS } from '../types';
-import { fmtHours, money, shiftGross, shiftHours } from '../calc';
+import { fmtHours, money, shiftGross, shiftHours, toKey } from '../calc';
 import { IconClose, IconCopy, IconTrash, IconRepeat } from './Icons';
 
 export interface ShiftHandlers {
@@ -78,11 +78,10 @@ export default function ShiftModal({
         await editShift(shift.id, draft);
       } else if (repeat && repeatCount > 1) {
         const drafts: ShiftDraft[] = [];
-        const base = new Date(draft.date + 'T00:00:00');
+        const [by, bm, bd] = draft.date.split('-').map(Number);
         for (let i = 0; i < repeatCount; i++) {
-          const d = new Date(base);
-          d.setDate(base.getDate() + i * (repeatFreq === 'weekly' ? 7 : 1));
-          drafts.push({ ...draft, date: d.toISOString().slice(0, 10) });
+          const d = new Date(by, bm - 1, bd + i * (repeatFreq === 'weekly' ? 7 : 1));
+          drafts.push({ ...draft, date: toKey(d) });
         }
         await addShifts(drafts);
       } else {

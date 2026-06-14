@@ -4,7 +4,7 @@ import { api } from '../api';
 import { useData } from '../data';
 import { useAuth } from '../auth';
 import type { Shift, ShiftDraft, Workbench } from '../types';
-import { computeMonthStats, fmtHours, money, parseKey } from '../calc';
+import { computeMonthStats, fmtHours, money, parseKey, todayKey } from '../calc';
 import { Progress } from '../components/ui';
 import ShiftModal from '../components/ShiftModal';
 import { IconPlus, IconClock, IconMoney, IconTarget } from '../components/Icons';
@@ -77,7 +77,7 @@ export default function Dashboard() {
         <ShiftModal
           workbench={quickAdd}
           shift={null}
-          defaultDate={new Date().toISOString().slice(0, 10)}
+          defaultDate={todayKey()}
           onClose={() => setQuickAdd(null)}
           addShift={async (d: ShiftDraft) => {
             const s = await api.createShift(quickAdd.id, d);
@@ -108,15 +108,12 @@ function OverallStrip({ workbenches, shiftsByWb }: { workbenches: Workbench[]; s
   const now = new Date();
   const totals = useMemo(() => {
     let hours = 0;
-    let projectedNet = 0;
     const byCurrency: Record<string, number> = {};
     for (const wb of workbenches) {
       const stats = computeMonthStats(wb, shiftsByWb[wb.id] || [], now.getFullYear(), now.getMonth());
       hours += stats.totalHours;
-      projectedNet += 0;
       byCurrency[wb.currency] = (byCurrency[wb.currency] || 0) + stats.projectedNet;
     }
-    void projectedNet;
     return { hours, byCurrency };
   }, [workbenches, shiftsByWb]);
 
