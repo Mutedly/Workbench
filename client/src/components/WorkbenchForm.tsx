@@ -3,7 +3,7 @@ import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
 import { useToast } from './Toast';
 import Switch from './Switch';
-import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget } from './Icons';
+import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget, IconCheck } from './Icons';
 
 export type WbValues = Pick<
   Workbench,
@@ -47,11 +47,12 @@ interface Props {
   initial: WbValues;
   submitLabel: string;
   successMessage?: string;
+  enhanced?: boolean;
   onSubmit: (values: WbValues) => Promise<void>;
   onCancel?: () => void;
 }
 
-export default function WorkbenchForm({ initial, submitLabel, successMessage, onSubmit, onCancel }: Props) {
+export default function WorkbenchForm({ initial, submitLabel, successMessage, enhanced, onSubmit, onCancel }: Props) {
   const [v, setV] = useState<WbValues>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -79,7 +80,8 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
   };
 
   return (
-    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form onSubmit={submit} className={enhanced ? 'wb-form--new' : undefined}
+      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {error && <div className="error-box">{error}</div>}
 
       {/* Basics */}
@@ -112,17 +114,35 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
             </select>
           </div>
           <div className="field">
-            <label>Color</label>
-            <div className="row-tight" style={{ flexWrap: 'wrap' }}>
-              {COLORS.map((c) => (
-                <span key={c} onClick={() => set('color', c)}
-                  style={{
-                    width: 26, height: 26, borderRadius: 8, background: c, cursor: 'pointer',
-                    outline: v.color === c ? '2px solid var(--text)' : '2px solid transparent',
-                    outlineOffset: 2,
-                  }} />
-              ))}
-            </div>
+            <label>Colour</label>
+            {enhanced ? (
+              <div className="swatches">
+                {COLORS.map((c) => (
+                  <button
+                    type="button"
+                    key={c}
+                    className={`swatch ${v.color === c ? 'on' : ''}`}
+                    onClick={() => set('color', c)}
+                    aria-label={`Colour ${c}`}
+                    aria-pressed={v.color === c}
+                    style={{ '--sw': c } as React.CSSProperties}
+                  >
+                    {v.color === c && <IconCheck size={15} />}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="row-tight" style={{ flexWrap: 'wrap' }}>
+                {COLORS.map((c) => (
+                  <span key={c} onClick={() => set('color', c)}
+                    style={{
+                      width: 26, height: 26, borderRadius: 8, background: c, cursor: 'pointer',
+                      outline: v.color === c ? '2px solid var(--text)' : '2px solid transparent',
+                      outlineOffset: 2,
+                    }} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="field">
@@ -138,15 +158,38 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
           <span className="icon-chip green"><IconMoney /></span>
           <div><h3>Pay</h3><div className="section-sub">How you're paid</div></div>
         </div>
-        <div className="mode-toggle">
-          {(['hourly', 'monthly'] as SalaryMode[]).map((m) => (
-            <div key={m} className={`mode-opt ${v.salary_mode === m ? 'on' : ''}`} onClick={() => set('salary_mode', m)}>
-              <div className="big">{m === 'hourly' ? '⏱️' : '💼'}</div>
-              {m === 'hourly' ? 'Hourly wage' : 'Monthly salary'}
-              <small>{m === 'hourly' ? 'Paid per hour worked' : 'Fixed full-time salary'}</small>
-            </div>
-          ))}
-        </div>
+        {enhanced ? (
+          <div className="pay-mode">
+            {(['hourly', 'monthly'] as SalaryMode[]).map((m) => (
+              <button
+                type="button"
+                key={m}
+                className={`pay-mode-opt ${v.salary_mode === m ? 'on' : ''}`}
+                onClick={() => set('salary_mode', m)}
+                aria-pressed={v.salary_mode === m}
+              >
+                <span className={`icon-chip ${m === 'hourly' ? 'green' : 'purple'}`}>
+                  {m === 'hourly' ? <IconClock /> : <IconMoney />}
+                </span>
+                <span className="pay-mode-text">
+                  <span className="pay-mode-title">{m === 'hourly' ? 'Hourly wage' : 'Monthly salary'}</span>
+                  <span className="pay-mode-sub">{m === 'hourly' ? 'Paid per hour worked' : 'Fixed full-time salary'}</span>
+                </span>
+                <span className="pay-mode-radio" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mode-toggle">
+            {(['hourly', 'monthly'] as SalaryMode[]).map((m) => (
+              <div key={m} className={`mode-opt ${v.salary_mode === m ? 'on' : ''}`} onClick={() => set('salary_mode', m)}>
+                <div className="big">{m === 'hourly' ? '⏱️' : '💼'}</div>
+                {m === 'hourly' ? 'Hourly wage' : 'Monthly salary'}
+                <small>{m === 'hourly' ? 'Paid per hour worked' : 'Fixed full-time salary'}</small>
+              </div>
+            ))}
+          </div>
+        )}
         {v.salary_mode === 'hourly' ? (
           <div className="field">
             <label>Default hourly rate ({v.currency})</label>
