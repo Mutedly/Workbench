@@ -27,6 +27,8 @@ export interface Workbench {
   tax_rate: number;
   tax_model: TaxModel;
   credit_points: number;
+  travel_per_day: number;
+  travel_taxable: number;
   currency: string;
   color: string;
   notes: string;

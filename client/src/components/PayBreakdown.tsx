@@ -35,6 +35,14 @@ export default function PayBreakdown({ tax, currency, title, note }: Props) {
 
       <div className="divider" style={{ margin: '16px 0 4px' }} />
 
+      {tax.travel > 0 && (
+        <DedRow
+          label={`Travel · נסיעות (${tax.travelDays} ${tax.travelDays === 1 ? 'day' : 'days'})`}
+          value={`+ ${m(tax.travel)}`}
+          positive
+        />
+      )}
+
       {tax.model === 'israel' ? (
         <>
           <DedRow label="Income tax · מס הכנסה" value={`− ${m(tax.incomeTax)}`}
@@ -54,7 +62,10 @@ export default function PayBreakdown({ tax, currency, title, note }: Props) {
   );
 }
 
-function DedRow({ label, value, hint, strong }: { label: string; value: string; hint?: string; strong?: boolean }) {
+function DedRow({ label, value, hint, strong, positive }: {
+  label: string; value: string; hint?: string; strong?: boolean; positive?: boolean;
+}) {
+  const valueColor = positive ? 'var(--success)' : strong ? 'var(--danger)' : 'var(--text)';
   return (
     <div className="row" style={{
       justifyContent: 'space-between', alignItems: 'baseline', padding: '9px 0',
@@ -64,7 +75,7 @@ function DedRow({ label, value, hint, strong }: { label: string; value: string; 
         {label}
         {hint && <span className="hint" style={{ marginInlineStart: 8 }}>{hint}</span>}
       </span>
-      <span style={{ fontWeight: strong ? 800 : 600, color: strong ? 'var(--danger)' : 'var(--text)', whiteSpace: 'nowrap' }}>
+      <span style={{ fontWeight: strong ? 800 : 600, color: valueColor, whiteSpace: 'nowrap' }}>
         {value}
       </span>
     </div>

@@ -27,6 +27,8 @@ export default function Settings() {
     tax_rate: workbench.tax_rate,
     tax_model: workbench.tax_model,
     credit_points: workbench.credit_points,
+    travel_per_day: workbench.travel_per_day,
+    travel_taxable: workbench.travel_taxable,
     currency: workbench.currency,
     color: workbench.color,
     notes: workbench.notes,

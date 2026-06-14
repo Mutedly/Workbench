@@ -3,7 +3,10 @@ import { computeIsraeliTax } from './israeliTax';
 
 export interface TaxBreakdown {
   model: 'flat' | 'israel';
-  gross: number;
+  gross: number; // total gross incl. travel
+  grossWork: number; // pay from shifts only
+  travel: number; // travel allowance added
+  travelDays: number;
   incomeTax: number;
   nationalInsurance: number;
   healthInsurance: number;
@@ -21,35 +24,52 @@ export function usesIsraeliTax(wb: Workbench): boolean {
   return wb.currency === 'ILS' && wb.tax_model === 'flat' && wb.tax_rate === 0;
 }
 
-// Net pay for a given MONTHLY gross, using the workbench's tax model.
-export function computeTax(wb: Workbench, monthlyGross: number): TaxBreakdown {
-  const gross = Math.max(0, monthlyGross);
+// Pure deductions for a taxable amount (no travel logic).
+function deductionsFor(wb: Workbench, taxable: number) {
   if (usesIsraeliTax(wb)) {
-    const b = computeIsraeliTax(gross, wb.credit_points);
+    const b = computeIsraeliTax(taxable, wb.credit_points);
     return {
-      model: 'israel',
-      gross,
+      model: 'israel' as const,
       incomeTax: b.incomeTax,
       nationalInsurance: b.nationalInsurance,
       healthInsurance: b.healthInsurance,
       otherDeductions: 0,
       creditValue: b.creditValue,
       totalDeductions: b.totalDeductions,
-      net: b.net,
     };
   }
-  const ded = gross * (wb.tax_rate / 100);
+  const ded = taxable * (wb.tax_rate / 100);
   return {
-    model: 'flat',
-    gross,
+    model: 'flat' as const,
     incomeTax: 0,
     nationalInsurance: 0,
     healthInsurance: 0,
     otherDeductions: ded,
     creditValue: 0,
     totalDeductions: ded,
-    net: gross - ded,
   };
+}
+
+// Full pay breakdown given the shift pay and number of commuting (work) days.
+export function computePay(wb: Workbench, grossWork: number, travelDays: number): TaxBreakdown {
+  const work = Math.max(0, grossWork);
+  const travel = Math.max(0, wb.travel_per_day) * Math.max(0, travelDays);
+  const gross = work + travel;
+  const taxable = wb.travel_taxable ? gross : work;
+  const d = deductionsFor(wb, taxable);
+  return {
+    ...d,
+    gross,
+    grossWork: work,
+    travel,
+    travelDays: Math.max(0, travelDays),
+    net: gross - d.totalDeductions,
+  };
+}
+
+// Backwards-compatible helper: net for a monthly gross with no travel.
+export function computeTax(wb: Workbench, monthlyGross: number): TaxBreakdown {
+  return computePay(wb, monthlyGross, 0);
 }
 
 /* ----------------------------- date utils ----------------------------- */
@@ -190,8 +210,12 @@ export function computeMonthStats(
   const vacationUsed = monthShifts.filter((s) => s.entry_type === 'vacation').length;
   const sickUsed = monthShifts.filter((s) => s.entry_type === 'sick').length;
 
-  const gross = wb.salary_mode === 'monthly' ? wb.monthly_salary : grossHourly;
-  const tax = computeTax(wb, gross);
+  // Travel allowance is paid per distinct commuting (work) day.
+  const travelDays = new Set(workShifts.filter((s) => shiftHours(s) > 0).map((s) => s.date)).size;
+
+  const grossWork = wb.salary_mode === 'monthly' ? wb.monthly_salary : grossHourly;
+  const tax = computePay(wb, grossWork, travelDays);
+  const gross = tax.gross;
   const net = tax.net;
 
   const shiftsCount = workShifts.length;
@@ -209,9 +233,11 @@ export function computeMonthStats(
   const factor = isCurrentMonth && daysElapsed > 0 ? daysTotal / daysElapsed : 1;
 
   const projectedHours = isCurrentMonth ? totalHours * factor : totalHours;
-  const projectedGross =
-    wb.salary_mode === 'monthly' ? wb.monthly_salary : (isCurrentMonth ? grossHourly * factor : gross);
-  const projectedTax = computeTax(wb, projectedGross);
+  const projectedWork =
+    wb.salary_mode === 'monthly' ? wb.monthly_salary : (isCurrentMonth ? grossHourly * factor : grossWork);
+  const projectedTravelDays = isCurrentMonth ? travelDays * factor : travelDays;
+  const projectedTax = computePay(wb, projectedWork, projectedTravelDays);
+  const projectedGross = projectedTax.gross;
   const projectedNet = projectedTax.net;
 
   return {

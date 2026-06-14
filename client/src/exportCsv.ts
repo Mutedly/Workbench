@@ -17,6 +17,9 @@ export function buildWorkbenchCsv(wb: Workbench, shifts: Shift[]): string {
   lines.push(cell(`Currency: ${wb.currency}`));
   lines.push(cell(`Pay model: ${wb.salary_mode}`));
   lines.push(cell(`Tax model: ${wb.tax_model === 'israel' ? 'Israeli tax 2026' : `Flat ${wb.tax_rate}%`}`));
+  if (wb.travel_per_day > 0) {
+    lines.push(cell(`Travel: ${wb.travel_per_day}/day (${wb.travel_taxable ? 'taxable' : 'tax-free'})`));
+  }
   lines.push('');
 
   // --- Shifts ---
@@ -47,7 +50,7 @@ export function buildWorkbenchCsv(wb: Workbench, shifts: Shift[]): string {
   // --- Monthly breakdown with tax detail ---
   lines.push(cell('MONTHLY BREAKDOWN'));
   const monthHeaders = [
-    'Month', 'Work shifts', 'Hours', 'Gross',
+    'Month', 'Work shifts', 'Hours', 'Work pay', 'Travel days', 'Travel', 'Gross',
     'Income tax', 'National insurance', 'Health tax', 'Other deductions',
     'Total deductions', 'Net', 'Vacation days', 'Sick days',
   ];
@@ -61,6 +64,9 @@ export function buildWorkbenchCsv(wb: Workbench, shifts: Shift[]): string {
       monthLabel(y, m - 1),
       st.shiftsCount,
       round2(st.totalHours),
+      round2(st.tax.grossWork),
+      st.tax.travelDays,
+      round2(st.tax.travel),
       round2(st.tax.gross),
       round2(st.tax.incomeTax),
       round2(st.tax.nationalInsurance),

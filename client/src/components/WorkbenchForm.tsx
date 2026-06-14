@@ -8,7 +8,8 @@ export type WbValues = Pick<
   | 'overtime_enabled' | 'overtime_daily_threshold' | 'overtime_multiplier'
   | 'weekend_multiplier' | 'holiday_multiplier' | 'night_multiplier'
   | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target'
-  | 'tax_rate' | 'tax_model' | 'credit_points' | 'currency' | 'color' | 'notes'
+  | 'tax_rate' | 'tax_model' | 'credit_points'
+  | 'travel_per_day' | 'travel_taxable' | 'currency' | 'color' | 'notes'
 >;
 
 export const defaultValues: WbValues = {
@@ -29,6 +30,8 @@ export const defaultValues: WbValues = {
   tax_rate: 0,
   tax_model: 'flat',
   credit_points: 2.25,
+  travel_per_day: 0,
+  travel_taxable: 0,
   currency: 'USD',
   color: '#6366f1',
   notes: '',
@@ -218,6 +221,26 @@ export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel
             </span>
           </div>
         )}
+      </div>
+
+      {/* Travel allowance */}
+      <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3>Travel allowance · נסיעות</h3>
+        <div className="form-grid">
+          <div className="field">
+            <label>Travel pay per work day ({v.currency})</label>
+            <input type="number" min={0} step="0.01" value={v.travel_per_day} onChange={numField('travel_per_day')} />
+            <span className="hint">Added automatically for each day you have a work shift.</span>
+          </div>
+          <div className="field" style={{ justifyContent: 'flex-end' }}>
+            <label className="row-tight" style={{ cursor: 'pointer', fontWeight: 600 }}>
+              <input type="checkbox" checked={!!v.travel_taxable}
+                onChange={(e) => set('travel_taxable', e.target.checked ? 1 : 0)} />
+              Travel is taxable
+            </label>
+            <span className="hint">In Israel travel reimbursement is usually tax-free — leave off.</span>
+          </div>
+        </div>
       </div>
 
       {/* Targets & time off */}

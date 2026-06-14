@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS workbenches (
   tax_rate REAL NOT NULL DEFAULT 0,
   tax_model TEXT NOT NULL DEFAULT 'flat',
   credit_points REAL NOT NULL DEFAULT 2.25,
+  travel_per_day REAL NOT NULL DEFAULT 0,
+  travel_taxable INTEGER NOT NULL DEFAULT 0,
   currency TEXT NOT NULL DEFAULT 'USD',
   color TEXT NOT NULL DEFAULT '#6366f1',
   notes TEXT NOT NULL DEFAULT '',
@@ -74,5 +76,7 @@ const addColumn = (name, ddl) => {
 };
 addColumn('tax_model', "tax_model TEXT NOT NULL DEFAULT 'flat'");
 addColumn('credit_points', 'credit_points REAL NOT NULL DEFAULT 2.25');
+addColumn('travel_per_day', 'travel_per_day REAL NOT NULL DEFAULT 0');
+addColumn('travel_taxable', 'travel_taxable INTEGER NOT NULL DEFAULT 0');
 
 export default db;
