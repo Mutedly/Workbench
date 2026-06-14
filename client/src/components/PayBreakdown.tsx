@@ -42,6 +42,10 @@ export default function PayBreakdown({ tax, currency, title, note }: Props) {
           <DedRow label="National Insurance · ביטוח לאומי" value={`− ${m(tax.nationalInsurance)}`} />
           <DedRow label="Health tax · מס בריאות" value={`− ${m(tax.healthInsurance)}`} />
           <DedRow label={`Total deductions (${pct}%)`} value={`− ${m(tax.totalDeductions)}`} strong />
+          <p className="hint" style={{ marginTop: 10 }}>
+            Estimate of mandatory employee deductions only. A real payslip can differ — it may
+            include travel pay (נסיעות), pension / keren hishtalmut, and tax coordination (תיאום מס).
+          </p>
         </>
       ) : (
         <DedRow label={`Deductions${pct ? ` (${pct}%)` : ''}`} value={`− ${m(tax.otherDeductions)}`} strong />

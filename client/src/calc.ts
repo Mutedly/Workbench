@@ -13,10 +13,18 @@ export interface TaxBreakdown {
   net: number;
 }
 
+// Decide whether to apply the Israeli engine. ILS workbenches default to it even when
+// the model field still says "flat" with no rate set (e.g. created before the feature
+// existed), so net is never silently left equal to gross.
+export function usesIsraeliTax(wb: Workbench): boolean {
+  if (wb.tax_model === 'israel') return true;
+  return wb.currency === 'ILS' && wb.tax_model === 'flat' && wb.tax_rate === 0;
+}
+
 // Net pay for a given MONTHLY gross, using the workbench's tax model.
 export function computeTax(wb: Workbench, monthlyGross: number): TaxBreakdown {
   const gross = Math.max(0, monthlyGross);
-  if (wb.tax_model === 'israel') {
+  if (usesIsraeliTax(wb)) {
     const b = computeIsraeliTax(gross, wb.credit_points);
     return {
       model: 'israel',
