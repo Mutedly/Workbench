@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useWorkbench } from './WorkbenchLayout';
 import {
   computeMonthStats, daysInMonth, fmtHours, money, monthLabel, shiftHours, toKey,
@@ -17,9 +17,29 @@ export default function CalendarView() {
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [modal, setModal] = useState<{ shift: Shift | null; date: string } | null>(null);
 
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+  const draggedRef = useRef(false);
+
   const year = cursor.getFullYear();
   const month0 = cursor.getMonth();
   const stats = computeMonthStats(workbench, shifts, year, month0);
+
+  const moveShiftTo = (shift: Shift, targetDate: string) => {
+    if (shift.date === targetDate) return;
+    editShift(shift.id, {
+      date: targetDate,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      break_minutes: shift.break_minutes,
+      title: shift.title,
+      notes: shift.notes,
+      custom_rate: shift.custom_rate,
+      tags: shift.tags,
+      entry_type: shift.entry_type,
+      paid_break: shift.paid_break,
+    }).catch(() => {});
+  };
 
   const shiftsByDate = useMemo(() => {
     const map: Record<string, Shift[]> = {};
@@ -107,8 +127,23 @@ export default function CalendarView() {
             return (
               <div
                 key={c.key}
-                className={`cal-cell ${c.inMonth ? '' : 'muted'} ${c.key === todayKey ? 'today' : ''} ${weekend ? 'weekend' : ''}`}
+                className={`cal-cell ${c.inMonth ? '' : 'muted'} ${c.key === todayKey ? 'today' : ''} ${weekend ? 'weekend' : ''} ${dragOver === c.key ? 'dragover' : ''}`}
                 onClick={() => setModal({ shift: null, date: c.key })}
+                onDragOver={(e) => {
+                  if (dragId == null) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (dragOver !== c.key) setDragOver(c.key);
+                }}
+                onDragLeave={() => { if (dragOver === c.key) setDragOver(null); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = Number(e.dataTransfer.getData('text/plain')) || dragId;
+                  const s = shifts.find((x) => x.id === id);
+                  if (s) moveShiftTo(s, c.key);
+                  setDragOver(null);
+                  setDragId(null);
+                }}
               >
                 <div className="cal-daynum">
                   <span>{c.day}</span>
@@ -117,8 +152,21 @@ export default function CalendarView() {
                 {dayShifts.slice(0, 3).map((s) => (
                   <div
                     key={s.id}
-                    className={`cal-chip ${s.entry_type === 'vacation' ? 'vac' : s.entry_type === 'sick' ? 'sick' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); setModal({ shift: s, date: s.date }); }}
+                    className={`cal-chip ${s.entry_type === 'vacation' ? 'vac' : s.entry_type === 'sick' ? 'sick' : ''} ${dragId === s.id ? 'dragging' : ''}`}
+                    draggable
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      draggedRef.current = true;
+                      setDragId(s.id);
+                      e.dataTransfer.setData('text/plain', String(s.id));
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragEnd={() => { setDragId(null); setDragOver(null); setTimeout(() => { draggedRef.current = false; }, 0); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (draggedRef.current) return;
+                      setModal({ shift: s, date: s.date });
+                    }}
                   >
                     {s.entry_type === 'work'
                       ? `${s.start_time ?? ''} ${s.title || ''}`.trim() || fmtHours(shiftHours(s, workbench))

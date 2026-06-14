@@ -382,6 +382,15 @@ select { cursor: pointer; }
 .cal-cell.muted { opacity: 0.4; }
 .cal-cell.today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
 .cal-cell.weekend { background: color-mix(in srgb, var(--bg-elev-2) 60%, var(--bg)); }
+.cal-cell.dragover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.cal-chip { transition: opacity 0.15s, transform 0.08s; }
+.cal-chip[draggable='true'] { cursor: grab; }
+.cal-chip[draggable='true']:active { cursor: grabbing; }
+.cal-chip.dragging { opacity: 0.35; }
 .cal-daynum { font-size: 12.5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
 .cal-daynum .hrs { font-size: 10.5px; color: var(--primary-text); font-weight: 600; font-family: var(--font-mono); }
 .cal-chip {
