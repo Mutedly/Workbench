@@ -3,6 +3,7 @@ import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
 import { useToast } from './Toast';
 import Switch from './Switch';
+import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget } from './Icons';
 
 export type WbValues = Pick<
   Workbench,
@@ -83,7 +84,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
 
       {/* Basics */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Basics</h3>
+        <div className="section-head">
+          <span className="icon-chip purple"><IconGrid /></span>
+          <div><h3>Basics</h3><div className="section-sub">Name, currency &amp; colour</div></div>
+        </div>
         <div className="field">
           <label>Workbench name</label>
           <input value={v.name} onChange={(e) => set('name', e.target.value)}
@@ -130,7 +134,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
 
       {/* Pay */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Pay</h3>
+        <div className="section-head">
+          <span className="icon-chip green"><IconMoney /></span>
+          <div><h3>Pay</h3><div className="section-sub">How you're paid</div></div>
+        </div>
         <div className="mode-toggle">
           {(['hourly', 'monthly'] as SalaryMode[]).map((m) => (
             <div key={m} className={`mode-opt ${v.salary_mode === m ? 'on' : ''}`} onClick={() => set('salary_mode', m)}>
@@ -169,7 +176,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
       {/* Overtime & premiums */}
       {v.salary_mode === 'hourly' && (
         <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <h3>Overtime & rate rules</h3>
+          <div className="section-head">
+            <span className="icon-chip orange"><IconClock /></span>
+            <div><h3>Overtime &amp; rate rules</h3><div className="section-sub">Premiums for extra hours</div></div>
+          </div>
           <Switch
             checked={!!v.overtime_enabled}
             onChange={(c) => set('overtime_enabled', c ? 1 : 0)}
@@ -209,7 +219,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
 
       {/* Tax model */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Tax model</h3>
+        <div className="section-head">
+          <span className="icon-chip blue"><IconPercent /></span>
+          <div><h3>Tax model</h3><div className="section-sub">How net pay is estimated</div></div>
+        </div>
         <div className="mode-toggle">
           <div className={`mode-opt ${v.tax_model === 'flat' ? 'on' : ''}`} onClick={() => set('tax_model', 'flat')}>
             <div className="big">％</div>
@@ -241,7 +254,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
 
       {/* Travel allowance */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Travel allowance · נסיעות</h3>
+        <div className="section-head">
+          <span className="icon-chip pink"><IconCar /></span>
+          <div><h3>Travel allowance · נסיעות</h3><div className="section-sub">Auto-added for each work day</div></div>
+        </div>
         <div className="form-grid">
           <div className="field">
             <label>Travel pay per work day ({v.currency})</label>
@@ -261,7 +277,10 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, on
 
       {/* Targets & time off */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Targets & time off</h3>
+        <div className="section-head">
+          <span className="icon-chip purple"><IconTarget /></span>
+          <div><h3>Targets &amp; time off</h3><div className="section-sub">Goals, vacation &amp; sick days</div></div>
+        </div>
         <div className="form-grid">
           <div className="field">
             <label>Monthly hour target</label>

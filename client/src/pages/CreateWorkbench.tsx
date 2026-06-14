@@ -11,13 +11,17 @@ export default function CreateWorkbench() {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto' }}>
       <div className="page-head">
-        <div className="row-tight">
-          <button className="btn btn-icon btn-ghost" onClick={() => navigate('/')}><IconBack /></button>
-          <h2>Create Workbench</h2>
+        <div className="row-tight" style={{ alignItems: 'center' }}>
+          <button className="btn btn-icon" onClick={() => navigate('/')} aria-label="Back"><IconBack /></button>
+          <div>
+            <div className="eyebrow">New workbench</div>
+            <h2 style={{ fontSize: 26 }}>Create Workbench</h2>
+          </div>
         </div>
       </div>
-      <p className="subtle" style={{ marginBottom: 18 }}>
-        A Workbench is one job or income source. Each one keeps its own settings, shifts and calculations.
+      <p className="subtle" style={{ marginBottom: 20, maxWidth: 560 }}>
+        A Workbench is one job or income source. Each one keeps its own settings, shifts and calculations —
+        completely independent from the others.
       </p>
       <WorkbenchForm
         initial={defaultValues}
