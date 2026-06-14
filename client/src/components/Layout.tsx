@@ -32,7 +32,11 @@ export default function Layout() {
       <div className={`scrim ${open ? 'show' : ''}`} onClick={close} />
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="brand" onClick={() => { navigate('/'); close(); }} style={{ cursor: 'pointer' }}>
-          <span className="brand-mark">W</span> Workbench
+          <span className="brand-mark">W</span>
+          <span className="brand-info">
+            <span className="brand-name">Workbench <span className="brand-beta">BETA</span></span>
+            <span className="brand-tag">Hours &amp; salary tracker</span>
+          </span>
         </div>
 
         <NavLink to="/" end className="nav-link" onClick={close}>
