@@ -6,7 +6,6 @@ import {
 import type { Shift } from '../types';
 import ShiftModal from '../components/ShiftModal';
 import PayBreakdown from '../components/PayBreakdown';
-import Sparkline from '../components/Sparkline';
 import { Progress } from '../components/ui';
 import { IconChevL, IconChevR, IconPlus } from '../components/Icons';
 
@@ -60,16 +59,6 @@ export default function CalendarView() {
     const isThisMonth = today.getFullYear() === year && today.getMonth() === month0;
     const todayK = toKey(today);
 
-    // weekly hour buckets within the month (≈ 4-5 weeks)
-    const buckets: number[] = [];
-    for (const s of monthWork) {
-      const wi = Math.floor((parseKey(s.date).getDate() - 1) / 7);
-      buckets[wi] = (buckets[wi] || 0) + shiftHours(s, workbench);
-    }
-    const lastWeek = isThisMonth ? Math.floor((today.getDate() - 1) / 7) : Math.ceil(daysTotal / 7) - 1;
-    const weekly: number[] = [];
-    for (let i = 0; i <= lastWeek; i++) weekly.push(buckets[i] || 0);
-
     // best day by hours and by money
     const byDate: Record<string, { hours: number; gross: number }> = {};
     let earnedHours = 0;
@@ -107,7 +96,7 @@ export default function CalendarView() {
     const paceDiff = earnedHours - expectedByNow;
     const hasGoal = weeklyHoursGoal > 0;
 
-    return { activeDays, weekly, bestHoursDay, bestMoneyDay, paceDiff, hasGoal };
+    return { activeDays, bestHoursDay, bestMoneyDay, paceDiff, hasGoal };
   }, [shifts, workbench, year, month0, daysTotal, today]);
 
   const pace = (() => {
@@ -161,7 +150,6 @@ export default function CalendarView() {
           <div className="sub">
             {stats.shiftsCount} shifts · <span className={`trend ${pace.cls}`}>{pace.text}</span>
           </div>
-          <Sparkline data={info.weekly} height={36} />
         </div>
         <div className="stat">
           <div className="label" style={{ justifyContent: 'space-between' }}>
