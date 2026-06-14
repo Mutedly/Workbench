@@ -259,4 +259,20 @@ if (fs.existsSync(clientDist)) {
 }
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Workbench API running on http://localhost:${PORT}`));
+const server = app.listen(PORT, () =>
+  console.log(`Workbench API running on http://localhost:${PORT}`),
+);
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(
+      `\n  Port ${PORT} is already in use — another Workbench server (or app) is probably still running.\n` +
+        `  Options:\n` +
+        `    • Stop the other process, or\n` +
+        `    • Start on a different port:  PORT=${Number(PORT) + 1} npm start` +
+        `   (Windows: set PORT=${Number(PORT) + 1} && npm start)\n`,
+    );
+    process.exit(1);
+  }
+  throw err;
+});
