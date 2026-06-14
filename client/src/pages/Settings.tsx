@@ -25,6 +25,8 @@ export default function Settings() {
     sick_days_total: workbench.sick_days_total,
     monthly_hour_target: workbench.monthly_hour_target,
     tax_rate: workbench.tax_rate,
+    tax_model: workbench.tax_model,
+    credit_points: workbench.credit_points,
     currency: workbench.currency,
     color: workbench.color,
     notes: workbench.notes,

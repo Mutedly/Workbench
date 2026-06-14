@@ -5,6 +5,7 @@ import {
 } from '../calc';
 import type { Shift } from '../types';
 import ShiftModal from '../components/ShiftModal';
+import PayBreakdown from '../components/PayBreakdown';
 import { Progress } from '../components/ui';
 import { IconChevL, IconChevR, IconPlus } from '../components/Icons';
 
@@ -66,17 +67,22 @@ export default function CalendarView() {
           <div className="sub">{stats.shiftsCount} shifts</div>
         </div>
         <div className="stat">
-          <div className="label">{workbench.tax_rate > 0 ? 'Net salary' : 'Gross salary'}</div>
-          <div className="value" style={{ color: 'var(--success)' }}>
-            {money(workbench.tax_rate > 0 ? stats.net : stats.gross, workbench.currency)}
+          <div className="label">Expected income</div>
+          <div className="value" style={{ color: 'var(--primary-text)' }}>
+            {money(stats.projectedTax.net, workbench.currency)}
           </div>
-          <div className="sub">{workbench.tax_rate > 0 ? `${money(stats.gross, workbench.currency)} gross` : 'this month'}</div>
+          <div className="sub">net, at current pace</div>
         </div>
         <div className="stat">
           <div className="label">Goal progress</div>
           <div className="value">{Math.round(stats.progressPct)}%</div>
           <div style={{ marginTop: 8 }}><Progress pct={stats.progressPct} /></div>
         </div>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <PayBreakdown tax={stats.tax} currency={workbench.currency} title={`${monthLabel(year, month0)} pay`}
+          note={stats.tax.model === 'israel' ? 'Israeli tax 2026' : undefined} />
       </div>
 
       <div className="card card-pad">

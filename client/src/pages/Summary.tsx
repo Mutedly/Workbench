@@ -5,6 +5,7 @@ import {
   shiftsInMonth, startOfWeek, toKey,
 } from '../calc';
 import { Progress, Stat } from '../components/ui';
+import PayBreakdown from '../components/PayBreakdown';
 import { IconChevL, IconChevR } from '../components/Icons';
 
 export default function Summary() {
@@ -48,16 +49,15 @@ export default function Summary() {
         </div>
       </div>
 
-      <div className="grid grid-stats">
-        <Stat label="Hours worked" value={fmtHours(stats.totalHours)} sub={`${stats.shiftsCount} shifts`} />
-        <Stat label="Gross salary" value={money(stats.gross, cur)} sub="before deductions" />
-        <Stat label="Net salary" value={money(stats.net, cur)} accent="var(--success)"
-          sub={workbench.tax_rate > 0 ? `after ${workbench.tax_rate}% deductions` : 'no deductions set'} />
-        <Stat label="Expected income" value={money(workbench.tax_rate > 0 ? stats.projectedNet : stats.projectedGross, cur)}
-          accent="var(--primary-text)" sub="at current pace" />
+      <div style={{ marginBottom: 16 }}>
+        <PayBreakdown tax={stats.tax} currency={cur} title={`${monthLabel(year, month0)} pay`}
+          note={stats.tax.model === 'israel' ? 'Israeli tax 2026' : undefined} />
       </div>
 
-      <div className="grid grid-stats" style={{ marginTop: 16 }}>
+      <div className="grid grid-stats">
+        <Stat label="Hours worked" value={fmtHours(stats.totalHours)} sub={`${stats.shiftsCount} shifts`} />
+        <Stat label="Expected net income" value={money(stats.projectedTax.net, cur)}
+          accent="var(--primary-text)" sub="at current pace" />
         <Stat label="Avg hours / shift" value={fmtHours(stats.avgHoursPerShift)} />
         <Stat label="Avg earnings / shift" value={money(stats.avgEarningsPerShift, cur)} />
         <Stat label="Overtime hours" value={fmtHours(stats.overtimeHours)} />

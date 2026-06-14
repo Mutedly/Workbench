@@ -8,7 +8,7 @@ export type WbValues = Pick<
   | 'overtime_enabled' | 'overtime_daily_threshold' | 'overtime_multiplier'
   | 'weekend_multiplier' | 'holiday_multiplier' | 'night_multiplier'
   | 'vacation_days_total' | 'sick_days_total' | 'monthly_hour_target'
-  | 'tax_rate' | 'currency' | 'color' | 'notes'
+  | 'tax_rate' | 'tax_model' | 'credit_points' | 'currency' | 'color' | 'notes'
 >;
 
 export const defaultValues: WbValues = {
@@ -27,6 +27,8 @@ export const defaultValues: WbValues = {
   sick_days_total: 10,
   monthly_hour_target: 160,
   tax_rate: 0,
+  tax_model: 'flat',
+  credit_points: 2.25,
   currency: 'USD',
   color: '#6366f1',
   notes: '',
@@ -78,7 +80,18 @@ export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel
         <div className="form-grid">
           <div className="field">
             <label>Currency</label>
-            <select value={v.currency} onChange={(e) => set('currency', e.target.value)}>
+            <select
+              value={v.currency}
+              onChange={(e) => {
+                const currency = e.target.value;
+                setV((p) => ({
+                  ...p,
+                  currency,
+                  // Helpful default: switch to Israeli tax rules for shekels (if untouched).
+                  tax_model: currency === 'ILS' && p.tax_model === 'flat' && p.tax_rate === 0 ? 'israel' : p.tax_model,
+                }));
+              }}
+            >
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
@@ -175,17 +188,45 @@ export default function WorkbenchForm({ initial, submitLabel, onSubmit, onCancel
         </div>
       )}
 
-      {/* Targets & deductions */}
+      {/* Tax model */}
       <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3>Targets, deductions & time off</h3>
+        <h3>Tax model</h3>
+        <div className="mode-toggle">
+          <div className={`mode-opt ${v.tax_model === 'flat' ? 'on' : ''}`} onClick={() => set('tax_model', 'flat')}>
+            <div className="big">％</div>
+            Simple percentage
+            <small>One flat deduction rate</small>
+          </div>
+          <div className={`mode-opt ${v.tax_model === 'israel' ? 'on' : ''}`} onClick={() => set('tax_model', 'israel')}>
+            <div className="big">🇮🇱</div>
+            Israeli tax (2026)
+            <small>Income tax + Bituach Leumi + health</small>
+          </div>
+        </div>
+        {v.tax_model === 'flat' ? (
+          <div className="field" style={{ maxWidth: '50%' }}>
+            <label>Tax / deduction estimate (%)</label>
+            <input type="number" min={0} max={100} step="0.1" value={v.tax_rate} onChange={numField('tax_rate')} />
+          </div>
+        ) : (
+          <div className="field" style={{ maxWidth: '50%' }}>
+            <label>Credit points · נקודות זיכוי</label>
+            <input type="number" min={0} step="0.25" value={v.credit_points} onChange={numField('credit_points')} />
+            <span className="hint">
+              ~2.25 (male) / 2.75 (female) by default. Each point = ₪242/mo off income tax.
+              Net is computed from monthly gross using 2026 income-tax brackets, National Insurance & health tax.
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Targets & time off */}
+      <div className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3>Targets & time off</h3>
         <div className="form-grid">
           <div className="field">
             <label>Monthly hour target</label>
             <input type="number" min={0} value={v.monthly_hour_target} onChange={numField('monthly_hour_target')} />
-          </div>
-          <div className="field">
-            <label>Tax / deduction estimate (%)</label>
-            <input type="number" min={0} max={100} step="0.1" value={v.tax_rate} onChange={numField('tax_rate')} />
           </div>
           <div className="field">
             <label>Vacation days (per year)</label>

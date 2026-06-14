@@ -1,4 +1,48 @@
 import type { Shift, Workbench } from './types';
+import { computeIsraeliTax } from './israeliTax';
+
+export interface TaxBreakdown {
+  model: 'flat' | 'israel';
+  gross: number;
+  incomeTax: number;
+  nationalInsurance: number;
+  healthInsurance: number;
+  otherDeductions: number;
+  creditValue: number;
+  totalDeductions: number;
+  net: number;
+}
+
+// Net pay for a given MONTHLY gross, using the workbench's tax model.
+export function computeTax(wb: Workbench, monthlyGross: number): TaxBreakdown {
+  const gross = Math.max(0, monthlyGross);
+  if (wb.tax_model === 'israel') {
+    const b = computeIsraeliTax(gross, wb.credit_points);
+    return {
+      model: 'israel',
+      gross,
+      incomeTax: b.incomeTax,
+      nationalInsurance: b.nationalInsurance,
+      healthInsurance: b.healthInsurance,
+      otherDeductions: 0,
+      creditValue: b.creditValue,
+      totalDeductions: b.totalDeductions,
+      net: b.net,
+    };
+  }
+  const ded = gross * (wb.tax_rate / 100);
+  return {
+    model: 'flat',
+    gross,
+    incomeTax: 0,
+    nationalInsurance: 0,
+    healthInsurance: 0,
+    otherDeductions: ded,
+    creditValue: 0,
+    totalDeductions: ded,
+    net: gross - ded,
+  };
+}
 
 /* ----------------------------- date utils ----------------------------- */
 export function todayKey(): string {
@@ -103,6 +147,8 @@ export interface MonthStats {
   projectedHours: number;
   projectedGross: number;
   projectedNet: number;
+  tax: TaxBreakdown;
+  projectedTax: TaxBreakdown;
   isCurrentMonth: boolean;
   daysElapsed: number;
   daysTotal: number;
@@ -137,7 +183,8 @@ export function computeMonthStats(
   const sickUsed = monthShifts.filter((s) => s.entry_type === 'sick').length;
 
   const gross = wb.salary_mode === 'monthly' ? wb.monthly_salary : grossHourly;
-  const net = gross * (1 - wb.tax_rate / 100);
+  const tax = computeTax(wb, gross);
+  const net = tax.net;
 
   const shiftsCount = workShifts.length;
   const avgHoursPerShift = shiftsCount ? totalHours / shiftsCount : 0;
@@ -156,7 +203,8 @@ export function computeMonthStats(
   const projectedHours = isCurrentMonth ? totalHours * factor : totalHours;
   const projectedGross =
     wb.salary_mode === 'monthly' ? wb.monthly_salary : (isCurrentMonth ? grossHourly * factor : gross);
-  const projectedNet = projectedGross * (1 - wb.tax_rate / 100);
+  const projectedTax = computeTax(wb, projectedGross);
+  const projectedNet = projectedTax.net;
 
   return {
     year,
@@ -176,6 +224,8 @@ export function computeMonthStats(
     projectedHours,
     projectedGross,
     projectedNet,
+    tax,
+    projectedTax,
     isCurrentMonth,
     daysElapsed,
     daysTotal,

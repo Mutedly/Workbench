@@ -175,8 +175,8 @@ function WorkbenchCard({ wb, shifts, onOpen, onQuickAdd }: {
 
         <div className="row" style={{ gap: 10 }}>
           <MiniStat icon={<IconClock size={15} />} label="Hours" value={fmtHours(stats.totalHours)} />
-          <MiniStat icon={<IconMoney size={15} />} label="Est. salary"
-            value={money(wb.tax_rate > 0 ? stats.net : stats.gross, wb.currency)} accent="var(--success)" />
+          <MiniStat icon={<IconMoney size={15} />} label="Est. net"
+            value={money(stats.net, wb.currency)} accent="var(--success)" />
         </div>
 
         <div>
