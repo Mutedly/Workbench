@@ -1,0 +1,62 @@
+export interface User {
+  id: number;
+  email: string;
+  name: string | null;
+}
+
+export type SalaryMode = 'hourly' | 'monthly';
+
+export interface Workbench {
+  id: number;
+  user_id: number;
+  name: string;
+  salary_mode: SalaryMode;
+  default_rate: number;
+  monthly_salary: number;
+  monthly_contract_hours: number;
+  overtime_enabled: number;
+  overtime_daily_threshold: number;
+  overtime_multiplier: number;
+  weekend_multiplier: number;
+  holiday_multiplier: number;
+  night_multiplier: number;
+  vacation_days_total: number;
+  sick_days_total: number;
+  monthly_hour_target: number;
+  tax_rate: number;
+  currency: string;
+  color: string;
+  notes: string;
+  created_at: string;
+  sort_order: number;
+}
+
+export type EntryType = 'work' | 'vacation' | 'sick';
+
+export const SHIFT_TAGS = [
+  'training',
+  'overtime',
+  'holiday',
+  'night shift',
+  'remote',
+  'office',
+] as const;
+
+export type ShiftTag = (typeof SHIFT_TAGS)[number];
+
+export interface Shift {
+  id: number;
+  workbench_id: number;
+  date: string; // YYYY-MM-DD
+  start_time: string | null; // HH:MM
+  end_time: string | null; // HH:MM
+  break_minutes: number;
+  title: string;
+  notes: string;
+  custom_rate: number | null;
+  tags: string[];
+  entry_type: EntryType;
+  created_at: string;
+}
+
+export type ShiftDraft = Omit<Shift, 'id' | 'workbench_id' | 'created_at'>;
