@@ -3,6 +3,7 @@ import type { EntryType, Shift, ShiftDraft, Workbench } from '../types';
 import { SHIFT_TAGS } from '../types';
 import { fmtHours, money, shiftGross, shiftHours, toKey } from '../calc';
 import Switch from './Switch';
+import Select from './Select';
 import { IconClose, IconCopy, IconTrash, IconRepeat } from './Icons';
 
 export interface ShiftHandlers {
@@ -226,10 +227,15 @@ export default function ShiftModal({
                 <div className="form-grid" style={{ marginTop: 12 }}>
                   <div className="field">
                     <label>Frequency</label>
-                    <select value={repeatFreq} onChange={(e) => setRepeatFreq(e.target.value as 'daily' | 'weekly')}>
-                      <option value="daily">Every day</option>
-                      <option value="weekly">Every week</option>
-                    </select>
+                    <Select
+                      value={repeatFreq}
+                      onChange={(v) => setRepeatFreq(v as 'daily' | 'weekly')}
+                      ariaLabel="Repeat frequency"
+                      options={[
+                        { value: 'daily', label: 'Every day' },
+                        { value: 'weekly', label: 'Every week' },
+                      ]}
+                    />
                   </div>
                   <div className="field">
                     <label>Occurrences</label>

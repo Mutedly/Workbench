@@ -3,6 +3,7 @@ import type { SalaryMode, Workbench } from '../types';
 import { CURRENCIES } from '../calc';
 import { useToast } from './Toast';
 import Switch from './Switch';
+import Select from './Select';
 import { IconGrid, IconMoney, IconClock, IconPercent, IconCar, IconTarget, IconCheck, IconChart } from './Icons';
 
 export type WbValues = Pick<
@@ -103,20 +104,20 @@ export default function WorkbenchForm({ initial, submitLabel, successMessage, en
         <div className="form-grid">
           <div className="field">
             <label>Currency</label>
-            <select
+            <Select
               value={v.currency}
-              onChange={(e) => {
-                const currency = e.target.value;
+              ariaLabel="Currency"
+              className={enhanced ? 'sel-lg' : undefined}
+              options={CURRENCIES.map((c) => ({ value: c, label: c }))}
+              onChange={(currency) =>
                 setV((p) => ({
                   ...p,
                   currency,
                   // Helpful default: switch to Israeli tax rules for shekels (if untouched).
                   tax_model: currency === 'ILS' && p.tax_model === 'flat' && p.tax_rate === 0 ? 'israel' : p.tax_model,
-                }));
-              }}
-            >
-              {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+                }))
+              }
+            />
           </div>
           <div className="field">
             <label>Colour</label>

@@ -5,6 +5,7 @@ import type { Shift } from '../types';
 import { SHIFT_TAGS } from '../types';
 import { downloadWorkbenchCsv } from '../exportCsv';
 import ShiftModal from '../components/ShiftModal';
+import Select from '../components/Select';
 import { IconDownload, IconPlus } from '../components/Icons';
 
 type SortKey = 'date' | 'hours' | 'earnings';
@@ -81,32 +82,43 @@ export default function ListView() {
             <label>Search</label>
             <input placeholder="Title or notes…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <div className="field" style={{ flex: '0 1 150px' }}>
+          <div className="field" style={{ flex: '0 1 160px' }}>
             <label>Month</label>
-            <select value={month} onChange={(e) => setMonth(e.target.value)}>
-              <option value="all">All months</option>
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {parseKey(m + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={month}
+              onChange={setMonth}
+              ariaLabel="Filter by month"
+              options={[
+                { value: 'all', label: 'All months' },
+                ...months.map((m) => ({
+                  value: m,
+                  label: parseKey(m + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+                })),
+              ]}
+            />
           </div>
-          <div className="field" style={{ flex: '0 1 130px' }}>
+          <div className="field" style={{ flex: '0 1 140px' }}>
             <label>Type</label>
-            <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="all">All types</option>
-              <option value="work">Work</option>
-              <option value="vacation">Vacation</option>
-              <option value="sick">Sick</option>
-            </select>
+            <Select
+              value={type}
+              onChange={setType}
+              ariaLabel="Filter by type"
+              options={[
+                { value: 'all', label: 'All types' },
+                { value: 'work', label: 'Work' },
+                { value: 'vacation', label: 'Vacation' },
+                { value: 'sick', label: 'Sick' },
+              ]}
+            />
           </div>
           <div className="field" style={{ flex: '0 1 150px' }}>
             <label>Tag</label>
-            <select value={tag} onChange={(e) => setTag(e.target.value)}>
-              <option value="all">All tags</option>
-              {SHIFT_TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <Select
+              value={tag}
+              onChange={setTag}
+              ariaLabel="Filter by tag"
+              options={[{ value: 'all', label: 'All tags' }, ...SHIFT_TAGS.map((t) => ({ value: t, label: t }))]}
+            />
           </div>
         </div>
       </div>

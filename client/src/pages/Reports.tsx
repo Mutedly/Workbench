@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useWorkbench } from './WorkbenchLayout';
 import { computeMonthStats, fmtHours, money, shiftGross, shiftHours } from '../calc';
 import { Stat } from '../components/ui';
+import Select from '../components/Select';
 
 export default function Reports() {
   const { workbench, shifts } = useWorkbench();
@@ -64,11 +65,17 @@ export default function Reports() {
     <div>
       <div className="page-head">
         <h2>Reports & Analytics</h2>
-        <select value={range} onChange={(e) => setRange(Number(e.target.value))} style={{ width: 'auto' }}>
-          <option value={3}>Last 3 months</option>
-          <option value={6}>Last 6 months</option>
-          <option value={12}>Last 12 months</option>
-        </select>
+        <Select
+          value={String(range)}
+          onChange={(v) => setRange(Number(v))}
+          ariaLabel="Time range"
+          style={{ width: 180 }}
+          options={[
+            { value: '3', label: 'Last 3 months' },
+            { value: '6', label: 'Last 6 months' },
+            { value: '12', label: 'Last 12 months' },
+          ]}
+        />
       </div>
 
       <div className="grid grid-stats">
