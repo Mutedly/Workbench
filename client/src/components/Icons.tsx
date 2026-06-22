@@ -25,4 +25,5 @@ export const IconTarget = ({ size }: P) => (<svg {...s(size)}><circle cx="12" cy
 export const IconRepeat = ({ size }: P) => (<svg {...s(size)}><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>);
 export const IconPercent = ({ size }: P) => (<svg {...s(size)}><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>);
 export const IconCheck = ({ size }: P) => (<svg {...s(size)}><path d="M20 6L9 17l-5-5"/></svg>);
+export const IconChevDown = ({ size }: P) => (<svg {...s(size)}><path d="M6 9l6 6 6-6"/></svg>);
 export const IconCar = ({ size }: P) => (<svg {...s(size)}><path d="M5 11l1.4-4.2A2 2 0 0 1 8.3 5.4h7.4a2 2 0 0 1 1.9 1.4L19 11"/><path d="M4 11h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1M4 17H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1"/><path d="M7 17h10"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/></svg>);

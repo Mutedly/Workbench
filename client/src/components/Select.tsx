@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { IconChevR, IconCheck } from './Icons';
+import { IconChevDown, IconCheck } from './Icons';
 
 export interface SelectOption {
   value: string;
@@ -48,7 +48,7 @@ export default function Select({ value, onChange, options, placeholder, ariaLabe
         <span className={`sel-value ${selected ? '' : 'placeholder'}`}>
           {selected ? selected.label : placeholder || 'Select…'}
         </span>
-        <span className={`sel-chev ${open ? 'open' : ''}`}><IconChevR size={16} /></span>
+        <span className={`sel-chev ${open ? 'open' : ''}`}><IconChevDown size={16} /></span>
       </button>
 
       {open && (
