@@ -52,6 +52,20 @@ npm start
 # open http://localhost:4000
 ```
 
+### Forgot your password?
+
+Two ways to reset, no email service required:
+
+1. **In‑app** — on the login screen click **“Forgot password?”**, enter your email, then read the
+   6‑digit reset code printed in the **server console/terminal** (valid 15 minutes) and set a new
+   password. (Set `ALLOW_INSECURE_RESET=1` to also return the code in the API response for local
+   convenience — not recommended in production.)
+2. **CLI** — from the `server/` folder run:
+
+   ```bash
+   npm run reset-password -- you@example.com your-new-password
+   ```
+
 ### Environment variables (optional)
 
 | Variable     | Default                  | Description                          |

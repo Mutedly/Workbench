@@ -7,6 +7,7 @@ interface AuthState {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  resetPassword: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -38,13 +39,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(r.token);
     setUser(r.user);
   };
+  const resetPassword = async (email: string, code: string, password: string) => {
+    const r = await api.reset(email, code, password);
+    setToken(r.token);
+    setUser(r.user);
+  };
   const logout = () => {
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

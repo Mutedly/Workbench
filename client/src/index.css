@@ -584,6 +584,15 @@ table.tbl tbody tr:hover { background: var(--surface-hover); }
   background: var(--danger-soft); color: var(--danger);
   padding: 11px 13px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 500;
 }
+.notice-box {
+  background: var(--primary-soft); color: var(--primary-text);
+  padding: 11px 13px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 500; line-height: 1.45;
+}
+.link-btn {
+  background: none; border: none; color: var(--primary-text); cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: inherit; padding: 4px;
+}
+.link-btn:hover { text-decoration: underline; }
 
 /* salary-mode + tax-model toggle */
 .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

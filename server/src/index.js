@@ -115,6 +115,43 @@ api.post('/auth/login', (req, res) => {
   res.json({ token: signToken(user), user: publicUser(user) });
 });
 
+api.post('/auth/forgot', (req, res) => {
+  const { email } = req.body || {};
+  let devCode;
+  if (email) {
+    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase());
+    if (user) {
+      const code = String(Math.floor(100000 + Math.random() * 900000)); // 6-digit
+      const hash = bcrypt.hashSync(code, 10);
+      const expires = Date.now() + 15 * 60 * 1000; // 15 minutes
+      db.prepare('UPDATE users SET reset_code_hash = ?, reset_expires = ? WHERE id = ?').run(hash, expires, user.id);
+      console.log(`\n=== [Workbench] Password reset code for ${user.email}: ${code}  (valid 15 minutes) ===\n`);
+      if (process.env.ALLOW_INSECURE_RESET === '1') devCode = code;
+    }
+  }
+  // Always respond the same way so the endpoint can't be used to probe which emails exist.
+  res.json({ ok: true, ...(devCode ? { devCode } : {}) });
+});
+
+api.post('/auth/reset', (req, res) => {
+  const { email, code, password } = req.body || {};
+  if (!email || !code || !password) return res.status(400).json({ error: 'Email, code and new password are required' });
+  if (String(password).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).toLowerCase());
+  if (!user || !user.reset_code_hash || !user.reset_expires) {
+    return res.status(400).json({ error: 'No active reset request. Request a new code.' });
+  }
+  if (Date.now() > user.reset_expires) {
+    return res.status(400).json({ error: 'Reset code has expired. Request a new one.' });
+  }
+  if (!bcrypt.compareSync(String(code), user.reset_code_hash)) {
+    return res.status(400).json({ error: 'Incorrect reset code' });
+  }
+  const hash = bcrypt.hashSync(String(password), 10);
+  db.prepare('UPDATE users SET password_hash = ?, reset_code_hash = NULL, reset_expires = NULL WHERE id = ?').run(hash, user.id);
+  res.json({ token: signToken(user), user: publicUser(user) });
+});
+
 api.get('/auth/me', authMiddleware, (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });

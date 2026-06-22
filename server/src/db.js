@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   name TEXT,
   password_hash TEXT NOT NULL,
+  reset_code_hash TEXT,
+  reset_expires INTEGER,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -76,6 +78,10 @@ CREATE INDEX IF NOT EXISTS idx_shifts_date ON shifts(date);
 `);
 
 // Lightweight migrations: add columns to existing databases if they're missing.
+const userCols = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
+if (!userCols.has('reset_code_hash')) db.exec('ALTER TABLE users ADD COLUMN reset_code_hash TEXT');
+if (!userCols.has('reset_expires')) db.exec('ALTER TABLE users ADD COLUMN reset_expires INTEGER');
+
 const wbCols = new Set(db.prepare('PRAGMA table_info(workbenches)').all().map((c) => c.name));
 const addColumn = (name, ddl) => {
   if (!wbCols.has(name)) db.exec(`ALTER TABLE workbenches ADD COLUMN ${ddl}`);

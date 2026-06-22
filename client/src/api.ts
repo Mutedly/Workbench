@@ -41,6 +41,16 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   me: () => request<{ user: User }>('/auth/me'),
+  forgot: (email: string) =>
+    request<{ ok: boolean; devCode?: string }>('/auth/forgot', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  reset: (email: string, code: string, password: string) =>
+    request<{ token: string; user: User }>('/auth/reset', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password }),
+    }),
 
   listWorkbenches: () => request<Workbench[]>('/workbenches'),
   getWorkbench: (id: number) => request<Workbench>(`/workbenches/${id}`),
